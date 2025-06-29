@@ -1,0 +1,16 @@
+{
+
+    "chains": {
+        "sepolia": {
+            "chainId": 11155111,
+            "originContract":"0x0000000000000000000000000000000000000000"
+        },
+        "kopli": {
+            "chainId": 5318008,
+            "callbackProxyContract":"0x0000000000000000000000000000000000fffFfF",
+            "reactiveSystemContract":"0x0000000000000000000000000000000000fffFfF",
+            "reactiveContract":"0x0000000000000000000000000000000000fffFfF",
+            "callbackContract":"0x0000000000000000000000000000000000000000"
+        }
+    }
+}
