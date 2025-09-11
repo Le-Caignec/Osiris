@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.8.0;
 
-import '@reactive-contract/abstract-base/AbstractCallback.sol';
+import {AbstractCallback} from '@reactive-contract/abstract-base/AbstractCallback.sol';
 
 contract Callback is AbstractCallback {
     event CallbackReceived(
         address indexed origin,
         address indexed sender,
-        address indexed reactive_sender
+        address indexed reactiveSender
     );
 
-    constructor(address _callback_sender) AbstractCallback(_callback_sender) payable {}
+    constructor(address _callbackSender) AbstractCallback(_callbackSender) payable {}
 
     function callback(address sender)
         external

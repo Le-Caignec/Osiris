@@ -1,21 +1,26 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.8.0;
 
-import '@reactive-contract/interfaces/ISystemContract.sol';
-import '@reactive-contract/abstract-base/AbstractPausableReactive.sol';
+import {ISystemContract} from '@reactive-contract/interfaces/ISystemContract.sol';
+import {AbstractPausableReactive} from '@reactive-contract/abstract-base/AbstractPausableReactive.sol';
 
 contract CronReactive is AbstractPausableReactive {
-    uint256 public CRON_TOPIC;
+    uint256 public conTopic;
     uint64 private constant GAS_LIMIT = 1000000;
-
+    uint256 public destinationChainId;
+    address private callback;
     uint256 public lastCronBlock;
 
     constructor(
         address _service,
-        uint256 _cronTopic
+        uint256 _cronTopic,
+        uint256 _destinationChainId,
+        address _callback
     ) payable {
         service = ISystemContract(payable(_service));
-        CRON_TOPIC = _cronTopic;
+        conTopic = _cronTopic;
+        destinationChainId = _destinationChainId;
+        callback = _callback;
 
         if (!vm) {
             service.subscribe(
@@ -34,7 +39,7 @@ contract CronReactive is AbstractPausableReactive {
         result[0] = Subscription(
             block.chainid,
             address(service),
-            CRON_TOPIC,
+            conTopic,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE,
             REACTIVE_IGNORE
@@ -43,14 +48,10 @@ contract CronReactive is AbstractPausableReactive {
     }
 
     function react(LogRecord calldata log) external vmOnly {
-        if (log.topic_0 == CRON_TOPIC) {
+        if (log.topic_0 == conTopic) {
             lastCronBlock = block.number;
-            emit Callback(
-                block.chainid,
-                address(this),
-                GAS_LIMIT,
-                abi.encodeWithSignature("callback()")
-            );
+            bytes memory payload = abi.encodeWithSignature("callback(address)", address(0));
+            emit Callback(destinationChainId, callback, GAS_LIMIT, payload);
         }
     }
 
