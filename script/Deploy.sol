@@ -2,41 +2,31 @@
 pragma solidity ^0.8.22;
 
 import {Script, console} from "forge-std/Script.sol";
-import {BasicDemoL1Contract} from "../src/BasicDemoL1Contract.sol";
-import {BasicDemoL1Callback} from "../src/BasicDemoL1Callback.sol";
-import {BasicDemoReactiveContract} from "../src/BasicDemoReactiveContract.sol";
+import {Callback} from "../src/Callback.sol";
+import {CronReactive} from "../src/CronReactive.sol";
 
-contract DeploySource is Script {
+contract DeployCallback is Script {
     function run() external {
         vm.startBroadcast();
+        address callbackSender = vm.envAddress("CALLBACK_SENDER_ADDRESS");
 
-        // Deploy the Origin contract on Sepolia
-        BasicDemoL1Contract originContract = new BasicDemoL1Contract();
-        console.log("Origin Contract Address (Sepolia):", address(originContract));
+        // Deploy the Callback contract on Sepolia
+        Callback callbackContract = new Callback{value: 0.1 ether}(callbackSender);
+        console.log("Callback Contract Address (Sepolia):", address(callbackContract));
 
         vm.stopBroadcast();
     }
 }
 
-contract DeployDestination is Script {
+contract DeployCronReactive is Script {
     function run() external {
         vm.startBroadcast();
-        address callbackProxyAddress = vm.envAddress("CALLBACK_PROXY_ADDRESS");
-        address service = vm.envAddress("REACTIVE_NETWORK_SYSTEM_CONTRACT_ADDRESS");
-        uint256 originChainId = vm.envUint("ORIGIN_CHAIN_ID");
-        uint256 destinationChainId = vm.envUint("DESTINATION_CHAIN_ID");
-        address originContract = vm.envAddress("ORIGIN_CONTRACT_ADDRESS");
+        address service = vm.envAddress("SERVICE");
+        uint256 cronTopic = 0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687; // ~1 minute
 
-        uint256 eventTopic0 = 0x8cabf31d2b1b11ba52dbb302817a3c9c83e4b2a5194d35121ab1354d69f6a4cb; //TODO : do not hardcode this
         // Deploy the Callback contract on Arbitrum Sepolia
-        BasicDemoL1Callback callback = new BasicDemoL1Callback{value: 0.05 ether}(callbackProxyAddress);
-        console.log("Callback Contract Address (Arbitrum Sepolia):", address(callback));
-
-        // Deploy the Reactive contract on Arbitrum Sepolia
-        BasicDemoReactiveContract reactiveContract = new BasicDemoReactiveContract(
-            service, originChainId, destinationChainId, originContract, eventTopic0, address(callback)
-        );
-        console.log("Reactive Contract Address (Arbitrum Sepolia):", address(reactiveContract));
+        CronReactive cronReactive = new CronReactive{value: 0.1 ether}(service,cronTopic);
+        console.log("Cron Reactive Contract Address:", address(cronReactive));
 
         vm.stopBroadcast();
     }
