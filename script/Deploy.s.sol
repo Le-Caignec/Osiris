@@ -11,7 +11,7 @@ contract DeployCallback is Script {
         address callbackSender = vm.envAddress("CALLBACK_SENDER_ADDRESS");
 
         // Deploy the Callback contract on Sepolia
-        Callback callbackContract = new Callback{value: 0.1 ether}(callbackSender);
+        Callback callbackContract = new Callback{value: 0.000001 ether}(callbackSender);
         console.log("Callback Contract Address (Sepolia):", address(callbackContract));
 
         vm.stopBroadcast();
