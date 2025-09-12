@@ -14,8 +14,9 @@ deploy-reactive:
 	    --account $(ACCOUNT) \
 		--broadcast \
 		--verify \
-		--verifier etherscan blockscout sourcify \
-		--verifier-api-key $(ETHERSCAN_API_KEY) \
+		--chain-id $(LASNA_CHAIN_ID)\
+		--verifier sourcify \
+		--verifier-url $(LASNA_VERIFIER_URL) \
 		-vvv
 
 deploy-callback:
@@ -36,8 +37,7 @@ pause-cron-reactive:
 		--rpc-url $(LASNA_RPC) \
 		--account $(ACCOUNT) \
 		--broadcast \
-		-vvv \
-		--optimize
+		-vvv
 
 unpause-cron-reactive:
 	# Unpause the CronReactive contract on Lasna
@@ -45,5 +45,4 @@ unpause-cron-reactive:
 		--rpc-url $(LASNA_RPC) \
 		--account $(ACCOUNT) \
 		--broadcast \
-		-vvv \
-		--optimize
+		-vvv

@@ -3,6 +3,7 @@ pragma solidity >=0.8.0;
 
 import {ISystemContract} from '@reactive-contract/interfaces/ISystemContract.sol';
 import {AbstractPausableReactive} from '@reactive-contract/abstract-base/AbstractPausableReactive.sol';
+import "forge-std/console.sol";
 
 contract CronReactive is AbstractPausableReactive {
     uint256 public conTopic;
@@ -21,17 +22,17 @@ contract CronReactive is AbstractPausableReactive {
         conTopic = _cronTopic;
         destinationChainId = _destinationChainId;
         callback = _callback;
-
-        if (!vm) {
-            service.subscribe(
-                block.chainid,
-                address(service),
-                _cronTopic,
-                REACTIVE_IGNORE,
-                REACTIVE_IGNORE,
-                REACTIVE_IGNORE
-            );
-        }
+        
+        // if (!vm) {
+        //     service.subscribe(
+        //         block.chainid,
+        //         address(service),
+        //         _cronTopic,
+        //         REACTIVE_IGNORE,
+        //         REACTIVE_IGNORE,
+        //         REACTIVE_IGNORE
+        //     );
+        // }
     }
 
     function getPausableSubscriptions() internal view override returns (Subscription[] memory) {
