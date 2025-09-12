@@ -12,7 +12,6 @@ deploy-reactive:
 	forge script script/Deploy.sol:DeployCronReactive \
 	    --rpc-url $(LASNA_RPC) \
 	    --account $(ACCOUNT) \
-		--broadcast \
 		--verify \
 		--chain-id $(LASNA_CHAIN_ID)\
 		--verifier sourcify \
@@ -26,7 +25,7 @@ deploy-callback:
 		--account $(ACCOUNT) \
 		--broadcast \
 		--verify \
-		--verifier etherscan  blockscout sourcify \
+		--verifier etherscan blockscout sourcify \
 		--verifier-api-key $(ETHERSCAN_API_KEY) \
 		-vvv
 
