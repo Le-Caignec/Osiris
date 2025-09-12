@@ -9,18 +9,24 @@ fork-sepolia:
 
 deploy-reactive:
 	# Deploy to Lasna (Cron Reactive Contract)
-	forge script script/Deploy.s.sol:DeployCronReactive \
+	forge script script/Deploy.sol:DeployCronReactive \
 	    --rpc-url $(LASNA_RPC) \
 	    --account $(ACCOUNT) \
 		--broadcast \
+		--verify \
+		--verifier etherscan blockscout sourcify \
+		--verifier-api-key $(ETHERSCAN_API_KEY) \
 		-vvv
 
 deploy-callback:
 	# Deploy to Sepolia (Callback Contracts)
-	forge script script/Deploy.s.sol:DeployCallback \
+	forge script script/Deploy.sol:DeployCallback \
 		--rpc-url $(SEPOLIA_RPC) \
 		--account $(ACCOUNT) \
 		--broadcast \
+		--verify \
+		--verifier etherscan  blockscout sourcify \
+		--verifier-api-key $(ETHERSCAN_API_KEY) \
 		-vvv
 
 #### Pause CronReactive Contract on Lasna ####
