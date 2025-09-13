@@ -24,10 +24,11 @@ contract DeployCronReactive is Script {
         uint256 cronTopic = 0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687; // ~1 minute
         uint256 destinationChainId = vm.envUint("SEPOLIA_CHAIN_ID");
         address callbackContractAddress = vm.envAddress("CALLBACK_CONTRACT_ADDRESS");
-        
+
         vm.startBroadcast();
         // Deploy the Reactive contract on Lasna
-        CronReactive cronReactive = new CronReactive{value: 0.1 ether}(service,cronTopic,destinationChainId,callbackContractAddress);
+        CronReactive cronReactive =
+            new CronReactive{value: 0.1 ether}(service, cronTopic, destinationChainId, callbackContractAddress);
         console.log("Cron Reactive Contract Address:", address(cronReactive));
         vm.stopBroadcast();
     }

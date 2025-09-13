@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.8.0;
 
-import {ISystemContract} from '@reactive-contract/interfaces/ISystemContract.sol';
-import {AbstractPausableReactive} from '@reactive-contract/abstract-base/AbstractPausableReactive.sol';
+import {ISystemContract} from "@reactive-contract/interfaces/ISystemContract.sol";
+import {AbstractPausableReactive} from "@reactive-contract/abstract-base/AbstractPausableReactive.sol";
 
 contract CronReactive is AbstractPausableReactive {
     uint256 public conTopic;
@@ -11,37 +11,21 @@ contract CronReactive is AbstractPausableReactive {
     address private callback;
     uint256 public lastCronBlock;
 
-    constructor(
-        address _service,
-        uint256 _cronTopic,
-        uint256 _destinationChainId,
-        address _callback
-    ) payable {
+    constructor(address _service, uint256 _cronTopic, uint256 _destinationChainId, address _callback) payable {
         service = ISystemContract(payable(_service));
         conTopic = _cronTopic;
         destinationChainId = _destinationChainId;
         callback = _callback;
-        
+
         service.subscribe(
-            block.chainid,
-            address(service),
-            _cronTopic,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
+            block.chainid, address(service), _cronTopic, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE
         );
     }
 
     function getPausableSubscriptions() internal view override returns (Subscription[] memory) {
         Subscription[] memory result = new Subscription[](1);
-        result[0] = Subscription(
-            block.chainid,
-            address(service),
-            conTopic,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE,
-            REACTIVE_IGNORE
-        );
+        result[0] =
+            Subscription(block.chainid, address(service), conTopic, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE);
         return result;
     }
 
