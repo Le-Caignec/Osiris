@@ -40,7 +40,7 @@ contract UniV4Swap {
             // 1) ERC20 → Permit2 allowance (one-time max is fine for testing)
             IERC20(tokenIn).approve(address(permit2), type(uint256).max);
             // 2) Permit2 → PoolManager allowance (owner = this contract)
-            permit2.approve(tokenIn, address(poolManager), type(uint160).max, uint48(block.timestamp + 365 days));
+            permit2.approve(tokenIn, address(router), type(uint160).max, uint48(block.timestamp + 365 days));
         }
         // Encode the Universal Router command
         bytes memory commands = abi.encodePacked(uint8(Commands.V4_SWAP));

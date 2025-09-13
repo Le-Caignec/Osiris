@@ -85,8 +85,6 @@ contract UniV4SwapTest is Test {
         console.log("USDC:", usdcBefore);
 
         // En option A: le contrat paie => transfère l'input vers le contrat
-        // (approve non nécessaire mais inoffensif)
-        weth.approve(address(uni), amountIn);
         weth.transfer(address(uni), amountIn);
 
         // Exécute le swap (le contrat doit forward l'output au msg.sender pour que les assertions passent)
@@ -111,49 +109,44 @@ contract UniV4SwapTest is Test {
         vm.stopPrank();
     }
 
-    // function testSwapUSDCForWETH() public {
-    //     // Approvisionne l'utilisateur en USDC depuis un whale
-    //     address usdcWhale = 0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503; // exemple
-    //     vm.startPrank(usdcWhale);
-    //     usdc.transfer(user, 5_000 * 1e6);
-    //     vm.stopPrank();
+    function testSwapUSDCForWETH() public {
+        deal(USDC, user, 5_000 * 1e6);
 
-    //     vm.startPrank(user);
+        vm.startPrank(user);
 
-    //     uint128 amountIn = 2_000 * 1e6; // 2000 USDC
-    //     uint128 minAmountOut = 0.3 ether; // min 0.3 WETH (à ajuster si besoin)
+        uint128 amountIn = 2_000 * 1e6; // 2000 USDC
+        uint128 minAmountOut = 0.3 ether; // min 0.3 WETH (à ajuster si besoin)
 
-    //     PoolKey memory poolKey = _poolKeyWethUsdc();
+        PoolKey memory poolKey = _poolKeyWethUsdc();
 
-    //     // currency0=USDC, currency1=WETH ; on veut USDC -> WETH
-    //     // => zeroForOne = true
-    //     bool zeroForOne = true;
+        // currency0=USDC, currency1=WETH ; on veut USDC -> WETH
+        // => zeroForOne = true
+        bool zeroForOne = true;
 
-    //     uint256 usdcBefore = usdc.balanceOf(user);
-    //     uint256 wethBefore = weth.balanceOf(user);
+        uint256 usdcBefore = usdc.balanceOf(user);
+        uint256 wethBefore = weth.balanceOf(user);
 
-    //     console.log("=== Before Swap USDC->WETH ===");
-    //     console.log("USDC:", usdcBefore);
-    //     console.log("WETH:", wethBefore);
+        console.log("=== Before Swap USDC->WETH ===");
+        console.log("USDC:", usdcBefore);
+        console.log("WETH:", wethBefore);
 
-    //     // Option A: le contrat paie => transfère l'input vers le contrat
-    //     usdc.approve(address(uni), amountIn);
-    //     usdc.transfer(address(uni), amountIn);
+        // Option A: le contrat paie => transfère l'input vers le contrat
+        usdc.transfer(address(uni), amountIn);
 
-    //     uint256 amountOut = uni.swapExactInputSingle(poolKey, zeroForOne, amountIn, minAmountOut);
+        uint256 amountOut = uni.swapExactInputSingle(poolKey, zeroForOne, amountIn, minAmountOut);
 
-    //     uint256 usdcAfter = usdc.balanceOf(user);
-    //     uint256 wethAfter = weth.balanceOf(user);
+        uint256 usdcAfter = usdc.balanceOf(user);
+        uint256 wethAfter = weth.balanceOf(user);
 
-    //     console.log("=== After Swap USDC->WETH ===");
-    //     console.log("USDC:", usdcAfter);
-    //     console.log("WETH:", wethAfter);
-    //     console.log("Amount out:", amountOut);
+        console.log("=== After Swap USDC->WETH ===");
+        console.log("USDC:", usdcAfter);
+        console.log("WETH:", wethAfter);
+        console.log("Amount out:", amountOut);
 
-    //     assertGt(amountOut, minAmountOut, "Output must be >= min");
-    //     assertEq(usdcAfter, usdcBefore - amountIn, "User USDC must decrease by amountIn");
-    //     assertGt(wethAfter, wethBefore, "User WETH must increase");
+        assertGt(amountOut, minAmountOut, "Output must be >= min");
+        assertEq(usdcAfter, usdcBefore - amountIn, "User USDC must decrease by amountIn");
+        assertGt(wethAfter, wethBefore, "User WETH must increase");
 
-    //     vm.stopPrank();
-    // }
+        vm.stopPrank();
+    }
 }
