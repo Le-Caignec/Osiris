@@ -81,80 +81,80 @@ contract UniV4SwapTest is Test {
     // Pool ERC20 & ERC20
     // ########################
 
-    // // Swap WETH -> USDC
-    // function testSwapWETHForUSDC() public {
-    //     vm.startPrank(user);
+    // Swap WETH -> USDC
+    function testSwapWETHForUSDC() public {
+        vm.startPrank(user);
 
-    //     uint128 amountIn = 0.1 ether;
-    //     uint128 minAmountOut = 150 * 1e6;
+        uint128 amountIn = 0.1 ether;
+        uint128 minAmountOut = 150 * 1e6;
 
-    //     PoolKey memory poolKey = _poolKeyWethUsdc();
-    //     bool zeroForOne = false; // WETH -> USDC
+        PoolKey memory poolKey = _poolKeyWethUsdc();
+        bool zeroForOne = false; // WETH -> USDC
 
-    //     uint256 wethBefore = weth.balanceOf(user);
-    //     uint256 usdcBefore = usdc.balanceOf(user);
+        uint256 wethBefore = weth.balanceOf(user);
+        uint256 usdcBefore = usdc.balanceOf(user);
 
-    //     console.log("=== Before Swap WETH->USDC ===");
-    //     console.log("WETH:", wethBefore);
-    //     console.log("USDC:", usdcBefore);
+        console.log("=== Before Swap WETH->USDC ===");
+        console.log("WETH:", wethBefore);
+        console.log("USDC:", usdcBefore);
 
-    //     bool sent = weth.transfer(address(uni), amountIn);
-    //     assertTrue(sent, "WETH transfer failed");
+        bool sent = weth.transfer(address(uni), amountIn);
+        assertTrue(sent, "WETH transfer failed");
 
-    //     uint256 amountOut = uni.swapExactInputSingle(poolKey, zeroForOne, amountIn, minAmountOut);
+        uint256 amountOut = uni.swapExactInputSingle(poolKey, zeroForOne, amountIn, minAmountOut);
 
-    //     uint256 wethAfter = weth.balanceOf(user);
-    //     uint256 usdcAfter = usdc.balanceOf(user);
+        uint256 wethAfter = weth.balanceOf(user);
+        uint256 usdcAfter = usdc.balanceOf(user);
 
-    //     console.log("=== After Swap WETH->USDC ===");
-    //     console.log("WETH:", wethAfter);
-    //     console.log("USDC:", usdcAfter);
-    //     console.log("Amount out:", amountOut);
+        console.log("=== After Swap WETH->USDC ===");
+        console.log("WETH:", wethAfter);
+        console.log("USDC:", usdcAfter);
+        console.log("Amount out:", amountOut);
 
-    //     assertGt(amountOut, minAmountOut, "Output must be >= min");
-    //     assertEq(wethAfter, wethBefore - amountIn, "User WETH must decrease by amountIn");
-    //     assertGt(usdcAfter, usdcBefore, "User USDC must increase");
+        assertGt(amountOut, minAmountOut, "Output must be >= min");
+        assertEq(wethAfter, wethBefore - amountIn, "User WETH must decrease by amountIn");
+        assertGt(usdcAfter, usdcBefore, "User USDC must increase");
 
-    //     vm.stopPrank();
-    // }
+        vm.stopPrank();
+    }
 
-    // // Swap USDC -> WETH
-    // function testSwapUSDCForWETH() public {
-    //     deal(USDC, user, 5_000 * 1e6);
-    //     vm.startPrank(user);
+    // Swap USDC -> WETH
+    function testSwapUSDCForWETH() public {
+        deal(USDC, user, 5_000 * 1e6);
+        vm.startPrank(user);
 
-    //     uint128 amountIn = 2_000 * 1e6;
-    //     uint128 minAmountOut = 0.3 ether;
+        uint128 amountIn = 2_000 * 1e6;
+        uint128 minAmountOut = 0.3 ether;
 
-    //     PoolKey memory poolKey = _poolKeyWethUsdc();
-    //     bool zeroForOne = true; // USDC -> WETH
+        PoolKey memory poolKey = _poolKeyWethUsdc();
+        bool zeroForOne = true; // USDC -> WETH
 
-    //     uint256 usdcBefore = usdc.balanceOf(user);
-    //     uint256 wethBefore = weth.balanceOf(user);
+        uint256 usdcBefore = usdc.balanceOf(user);
+        uint256 wethBefore = weth.balanceOf(user);
 
-    //     console.log("=== Before Swap USDC->WETH ===");
-    //     console.log("USDC:", usdcBefore);
-    //     console.log("WETH:", wethBefore);
+        console.log("=== Before Swap USDC->WETH ===");
+        console.log("USDC:", usdcBefore);
+        console.log("WETH:", wethBefore);
 
-    //     bool sent = usdc.transfer(address(uni), amountIn);
-    //     assertTrue(sent, "USDC transfer failed");
+        bool sent = usdc.transfer(address(uni), amountIn);
+        assertTrue(sent, "USDC transfer failed");
 
-    //     uint256 amountOut = uni.swapExactInputSingle(poolKey, zeroForOne, amountIn, minAmountOut);
+        uint256 amountOut = uni.swapExactInputSingle(poolKey, zeroForOne, amountIn, minAmountOut);
 
-    //     uint256 usdcAfter = usdc.balanceOf(user);
-    //     uint256 wethAfter = weth.balanceOf(user);
+        uint256 usdcAfter = usdc.balanceOf(user);
+        uint256 wethAfter = weth.balanceOf(user);
 
-    //     console.log("=== After Swap USDC->WETH ===");
-    //     console.log("USDC:", usdcAfter);
-    //     console.log("WETH:", wethAfter);
-    //     console.log("Amount out:", amountOut);
+        console.log("=== After Swap USDC->WETH ===");
+        console.log("USDC:", usdcAfter);
+        console.log("WETH:", wethAfter);
+        console.log("Amount out:", amountOut);
 
-    //     assertGt(amountOut, minAmountOut, "Output must be >= min");
-    //     assertEq(usdcAfter, usdcBefore - amountIn, "User USDC must decrease by amountIn");
-    //     assertGt(wethAfter, wethBefore, "User WETH must increase");
+        assertGt(amountOut, minAmountOut, "Output must be >= min");
+        assertEq(usdcAfter, usdcBefore - amountIn, "User USDC must decrease by amountIn");
+        assertGt(wethAfter, wethBefore, "User WETH must increase");
 
-    //     vm.stopPrank();
-    // }
+        vm.stopPrank();
+    }
 
     // ########################
     // Pool Native & ERC20
