@@ -32,6 +32,7 @@ contract UniV4Swap {
 
     function swapExactInputSingle(PoolKey calldata key, bool zeroForOne, uint128 amountIn, uint128 minAmountOut)
         external
+        payable
         returns (uint256 amountOut)
     {
         // pick input/output based on direction
@@ -75,7 +76,14 @@ contract UniV4Swap {
 
         // Execute the swap
         uint256 deadline = block.timestamp + 20;
-        UNISWAP_ROUTER.execute(commands, inputs, deadline);
+        if (inCurrency.isAddressZero()) {
+            // When paying with native, the router needs ETH on this call
+            // Expect msg.value == amountIn (or at least enough to cover it)
+            require(msg.value >= amountIn, "Insufficient msg.value for native input");
+            UNISWAP_ROUTER.execute{value: amountIn}(commands, inputs, deadline);
+        } else {
+            UNISWAP_ROUTER.execute(commands, inputs, deadline);
+        }
 
         // Measure output on this contract (direction-aware)
         amountOut = outCurrency.balanceOf(address(this));
@@ -92,4 +100,10 @@ contract UniV4Swap {
         }
         return amountOut;
     }
+
+    // Accept native ETH (e.g., from PoolManager::take on native-out swaps)
+    receive() external payable {}
+
+    // Safety net for value transfers with non-empty calldata
+    fallback() external payable {}
 }
