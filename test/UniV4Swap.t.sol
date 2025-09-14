@@ -65,18 +65,12 @@ contract UniV4SwapTest is Test {
     function testSwapWETHForUSDC() public {
         vm.startPrank(user);
 
-        // 0.1 WETH in (commentaire corrigé)
         uint128 amountIn = 0.1 ether;
-        // Min out plausible pour 0.1 WETH (à ajuster selon le block forké)
-        uint128 minAmountOut = 150 * 1e6; // 150 USDC
+        uint128 minAmountOut = 150 * 1e6;
 
         PoolKey memory poolKey = _poolKeyWethUsdc();
+        bool zeroForOne = false; // WETH -> USDC
 
-        // Avec USDC < WETH -> currency0=USDC, currency1=WETH.
-        // On veut WETH -> USDC => oneForZero => zeroForOne = false
-        bool zeroForOne = false;
-
-        // Balances avant
         uint256 wethBefore = weth.balanceOf(user);
         uint256 usdcBefore = usdc.balanceOf(user);
 
@@ -84,13 +78,11 @@ contract UniV4SwapTest is Test {
         console.log("WETH:", wethBefore);
         console.log("USDC:", usdcBefore);
 
-        // En option A: le contrat paie => transfère l'input vers le contrat
-        weth.transfer(address(uni), amountIn);
+        bool sent = weth.transfer(address(uni), amountIn);
+        assertTrue(sent, "WETH transfer failed");
 
-        // Exécute le swap (le contrat doit forward l'output au msg.sender pour que les assertions passent)
         uint256 amountOut = uni.swapExactInputSingle(poolKey, zeroForOne, amountIn, minAmountOut);
 
-        // Balances après
         uint256 wethAfter = weth.balanceOf(user);
         uint256 usdcAfter = usdc.balanceOf(user);
 
@@ -99,11 +91,8 @@ contract UniV4SwapTest is Test {
         console.log("USDC:", usdcAfter);
         console.log("Amount out:", amountOut);
 
-        // Assertions
         assertGt(amountOut, minAmountOut, "Output must be >= min");
-        // Le user a envoyé amountIn au contrat avant le swap => son WETH diminue de amountIn
         assertEq(wethAfter, wethBefore - amountIn, "User WETH must decrease by amountIn");
-        // Si le contrat forward l'output, le user reçoit l'USDC
         assertGt(usdcAfter, usdcBefore, "User USDC must increase");
 
         vm.stopPrank();
@@ -111,17 +100,13 @@ contract UniV4SwapTest is Test {
 
     function testSwapUSDCForWETH() public {
         deal(USDC, user, 5_000 * 1e6);
-
         vm.startPrank(user);
 
-        uint128 amountIn = 2_000 * 1e6; // 2000 USDC
-        uint128 minAmountOut = 0.3 ether; // min 0.3 WETH (à ajuster si besoin)
+        uint128 amountIn = 2_000 * 1e6;
+        uint128 minAmountOut = 0.3 ether;
 
         PoolKey memory poolKey = _poolKeyWethUsdc();
-
-        // currency0=USDC, currency1=WETH ; on veut USDC -> WETH
-        // => zeroForOne = true
-        bool zeroForOne = true;
+        bool zeroForOne = true; // USDC -> WETH
 
         uint256 usdcBefore = usdc.balanceOf(user);
         uint256 wethBefore = weth.balanceOf(user);
@@ -130,8 +115,8 @@ contract UniV4SwapTest is Test {
         console.log("USDC:", usdcBefore);
         console.log("WETH:", wethBefore);
 
-        // Option A: le contrat paie => transfère l'input vers le contrat
-        usdc.transfer(address(uni), amountIn);
+        bool sent = usdc.transfer(address(uni), amountIn);
+        assertTrue(sent, "USDC transfer failed");
 
         uint256 amountOut = uni.swapExactInputSingle(poolKey, zeroForOne, amountIn, minAmountOut);
 

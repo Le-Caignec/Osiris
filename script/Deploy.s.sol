@@ -4,6 +4,7 @@ pragma solidity ^0.8.22;
 import {Script, console} from "forge-std/Script.sol";
 import {Callback} from "../src/Callback.sol";
 import {CronReactive} from "../src/CronReactive.sol";
+import {UniV4Swap} from "../src/UniV4Swap.sol";
 
 contract DeployCallback is Script {
     function run() external {
@@ -14,6 +15,19 @@ contract DeployCallback is Script {
         Callback callbackContract = new Callback{value: 0.000001 ether}(callbackSender);
         console.log("Callback Contract Address (Sepolia):", address(callbackContract));
 
+        vm.stopBroadcast();
+    }
+}
+
+contract DeploySwap is Script {
+    function run() external {
+        address universalRouter = vm.envAddress("UNIVERSAL_ROUTER_ADDRESS");
+        address permit2 = vm.envAddress("PERMIT2_ADDRESS");
+
+        vm.startBroadcast();
+        // Deploy the UniV4Swap contract on Sepolia
+        address uniV4SwapContract = address(new UniV4Swap(universalRouter, permit2));
+        console.log("UniV4Swap Contract Address (Sepolia):", uniV4SwapContract);
         vm.stopBroadcast();
     }
 }

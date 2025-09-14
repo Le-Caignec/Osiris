@@ -1,12 +1,18 @@
 -include .env
 
-#
-# Test and utility targets
-#
+########################################################
+# Makefile for ReactiveDCA Smart Contracts
+########################################################
 
+# Testing Commands
 fork-sepolia:
 	anvil --fork-url $(SEPOLIA_RPC_URL) --port 8545
 
+test-all:
+	# Run tests with gas reporting
+	forge test -vvvv --gas-report
+
+# Deployment Commands
 deploy-reactive:
 	# Deploy to Lasna (Cron Reactive Contract)
 	forge script script/Deploy.s.sol:DeployCronReactive \
@@ -29,7 +35,18 @@ deploy-callback:
 		--verifier-api-key $(ETHERSCAN_API_KEY) \
 		-vvv
 
-#### Pause CronReactive Contract on Lasna ####
+deploy-swap:
+	# Deploy to Sepolia (Swap Contracts)
+	forge script script/Deploy.s.sol:DeploySwap \
+		--rpc-url $(SEPOLIA_RPC) \
+		--account $(ACCOUNT) \
+		--broadcast \
+		--verify \
+		--verifier etherscan \
+		--verifier-api-key $(ETHERSCAN_API_KEY) \
+		-vvv
+
+# Cron Management Commands
 pause-cron-reactive:
 	# Pause the CronReactive contract on Lasna
 	forge script script/CronAction.s.sol:CronActionPause \
