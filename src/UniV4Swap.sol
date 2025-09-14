@@ -77,7 +77,7 @@ contract UniV4Swap {
 
         // Forward output to caller (both ERC20 and native supported)
         if (outCurrency.isAddressZero()) {
-            (bool ok, ) = msg.sender.call{value: amountOut}("");
+            (bool ok,) = msg.sender.call{value: amountOut}("");
             require(ok, "Native transfer failed");
         } else {
             IERC20(Currency.unwrap(outCurrency)).transfer(msg.sender, amountOut);

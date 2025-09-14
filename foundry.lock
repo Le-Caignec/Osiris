@@ -14,6 +14,9 @@
   "lib/reactive-lib": {
     "rev": "d664678a7d86204c9391af4cedfd5ae0b0b904e4"
   },
+  "lib/solmate": {
+    "rev": "89365b880c4f3c786bdd453d4b8e8fe410344a69"
+  },
   "lib/universal-router": {
     "rev": "41183d6eb154f0ab0e74a0e911a5ef9ea51fc4bd"
   },
