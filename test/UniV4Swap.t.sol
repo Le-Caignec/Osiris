@@ -8,33 +8,41 @@ import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IWETH} from "./mock/IWETH.sol";
-
-address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-
-address constant UNIVERSAL_ROUTER = 0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af;
-address constant POOL_MANAGER = 0x000000000004444c5dc75cB358380D2e3dE08A90;
-address constant PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
+import {ConfigLib} from "../script/lib/configLib.sol";
 
 contract UniV4SwapTest is Test {
-    IWETH private weth = IWETH(WETH);
-    IERC20 private usdc = IERC20(USDC);
+    // Loaded from config at setUp
+    address private WETH;
+    address private USDC;
+    address private UNIVERSAL_ROUTER;
+    address private POOL_MANAGER;
+    address private PERMIT2;
+
+    IWETH private weth;
+    IERC20 private usdc;
 
     UniV4Swap private uni;
     address private user = makeAddr("user");
 
-    // Pool parameters (v4)
     uint24 constant FEE = 3000; // 0.3%
     int24 constant TICK_SPACING = 60;
 
     function setUp() public {
-        // Fork mainnet correctement (create + select)
         vm.createSelectFork(vm.envString("ETHEREUM_RPC_URL"));
+        string memory chain = "ethereum";
+        ConfigLib.UniswapV4Addresses memory config = ConfigLib.readUniswapV4Addresses(chain);
 
-        // Déploie le contrat
+        WETH = config.weth;
+        USDC = config.usdc;
+        UNIVERSAL_ROUTER = config.universalRouter;
+        POOL_MANAGER = config.poolManager;
+        PERMIT2 = config.permit2;
+
+        weth = IWETH(WETH);
+        usdc = IERC20(USDC);
+
         uni = new UniV4Swap(UNIVERSAL_ROUTER, PERMIT2);
 
-        // Alimente l'utilisateur en ETH et wrap en WETH
         vm.deal(user, 10 ether);
         vm.startPrank(user);
         weth.deposit{value: 2 ether}();
@@ -55,19 +63,19 @@ contract UniV4SwapTest is Test {
     // Helpers
     // ########################
 
-    function _poolKeyWethUsdc() internal pure returns (PoolKey memory) {
-        // Respecte l'ordre address croissant: currency0 < currency1
+    function _poolKeyWethUsdc() internal view returns (PoolKey memory) {
+        address token0 = WETH < USDC ? WETH : USDC;
+        address token1 = WETH < USDC ? USDC : WETH;
         return PoolKey({
-            currency0: Currency.wrap(WETH < USDC ? WETH : USDC),
-            currency1: Currency.wrap(WETH < USDC ? USDC : WETH),
+            currency0: Currency.wrap(token0),
+            currency1: Currency.wrap(token1),
             fee: FEE,
             tickSpacing: TICK_SPACING,
             hooks: IHooks(address(0))
         });
     }
 
-    function _poolKeyNativeUsdc() internal pure returns (PoolKey memory) {
-        // Respecte l'ordre address croissant: currency0 < currency1
+    function _poolKeyNativeUsdc() internal view returns (PoolKey memory) {
         return PoolKey({
             currency0: Currency.wrap(address(0)),
             currency1: Currency.wrap(USDC),
