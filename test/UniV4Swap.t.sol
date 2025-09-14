@@ -12,11 +12,11 @@ import {ConfigLib} from "../script/lib/configLib.sol";
 
 contract UniV4SwapTest is Test {
     // Loaded from config at setUp
-    address private WETH;
-    address private USDC;
-    address private UNIVERSAL_ROUTER;
-    address private POOL_MANAGER;
-    address private PERMIT2;
+    address private wethAddress;
+    address private usdcAddress;
+    address private universalRouter;
+    address private poolManager;
+    address private permit2;
 
     IWETH private weth;
     IERC20 private usdc;
@@ -28,20 +28,20 @@ contract UniV4SwapTest is Test {
     int24 constant TICK_SPACING = 60;
 
     function setUp() public {
-        vm.createSelectFork(vm.envString("ETHEREUM_RPC_URL"));
-        string memory chain = "ethereum";
-        ConfigLib.UniswapV4Addresses memory config = ConfigLib.readUniswapV4Addresses(chain);
+        string memory chain = vm.envString("CHAIN");
+        ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
+        vm.createSelectFork(config.rpcUrl);
 
-        WETH = config.weth;
-        USDC = config.usdc;
-        UNIVERSAL_ROUTER = config.universalRouter;
-        POOL_MANAGER = config.poolManager;
-        PERMIT2 = config.permit2;
+        wethAddress = config.weth;
+        usdcAddress = config.usdc;
+        universalRouter = config.uniswapUniversalRouter;
+        poolManager = config.uniswapPoolManager;
+        permit2 = config.uniswapPermit2;
 
-        weth = IWETH(WETH);
-        usdc = IERC20(USDC);
+        weth = IWETH(wethAddress);
+        usdc = IERC20(usdcAddress);
 
-        uni = new UniV4Swap(UNIVERSAL_ROUTER, PERMIT2);
+        uni = new UniV4Swap(universalRouter, permit2);
 
         vm.deal(user, 10 ether);
         vm.startPrank(user);
@@ -51,10 +51,10 @@ contract UniV4SwapTest is Test {
         console.log("User WETH balance:", weth.balanceOf(user));
         console.log("User USDC balance:", usdc.balanceOf(user));
 
-        vm.label(WETH, "WETH");
-        vm.label(USDC, "USDC");
-        vm.label(UNIVERSAL_ROUTER, "UniversalRouter");
-        vm.label(POOL_MANAGER, "PoolManager");
+        vm.label(wethAddress, "WETH");
+        vm.label(usdcAddress, "USDC");
+        vm.label(universalRouter, "UniversalRouter");
+        vm.label(poolManager, "PoolManager");
         vm.label(address(uni), "UniV4Swap");
         vm.label(user, "User");
     }
@@ -64,8 +64,8 @@ contract UniV4SwapTest is Test {
     // ########################
 
     function _poolKeyWethUsdc() internal view returns (PoolKey memory) {
-        address token0 = WETH < USDC ? WETH : USDC;
-        address token1 = WETH < USDC ? USDC : WETH;
+        address token0 = wethAddress < usdcAddress ? wethAddress : usdcAddress;
+        address token1 = wethAddress < usdcAddress ? usdcAddress : wethAddress;
         return PoolKey({
             currency0: Currency.wrap(token0),
             currency1: Currency.wrap(token1),
@@ -78,7 +78,7 @@ contract UniV4SwapTest is Test {
     function _poolKeyNativeUsdc() internal view returns (PoolKey memory) {
         return PoolKey({
             currency0: Currency.wrap(address(0)),
-            currency1: Currency.wrap(USDC),
+            currency1: Currency.wrap(usdcAddress),
             fee: FEE,
             tickSpacing: TICK_SPACING,
             hooks: IHooks(address(0))
@@ -128,7 +128,7 @@ contract UniV4SwapTest is Test {
 
     // Swap USDC -> WETH
     function testSwapUSDCForWETH() public {
-        deal(USDC, user, 5_000 * 1e6);
+        deal(usdcAddress, user, 5_000 * 1e6);
         vm.startPrank(user);
 
         uint128 amountIn = 2_000 * 1e6;
@@ -203,7 +203,7 @@ contract UniV4SwapTest is Test {
     // Swap USDC -> Native (ETH)
     function testSwapUSDCForNative() public {
         // Fund user with USDC
-        deal(USDC, user, 5_000 * 1e6);
+        deal(usdcAddress, user, 5_000 * 1e6);
         vm.startPrank(user);
 
         uint128 amountIn = 2_000 * 1e6; // 2,000 USDC

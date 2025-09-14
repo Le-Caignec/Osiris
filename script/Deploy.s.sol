@@ -5,24 +5,29 @@ import {Script, console} from "forge-std/Script.sol";
 import {Callback} from "../src/Callback.sol";
 import {CronReactive} from "../src/CronReactive.sol";
 import {UniV4Swap} from "../src/UniV4Swap.sol";
+import {ConfigLib} from "./lib/configLib.sol";
 
 contract DeployCallback is Script {
     function run() external {
-        vm.startBroadcast();
-        address callbackSender = vm.envAddress("CALLBACK_SENDER_ADDRESS");
+        string memory chain = vm.envString("CHAIN");
+        ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
+        address callbackSender = config.callbackProxyContract;
 
+        vm.startBroadcast();
         // Deploy the Callback contract on Sepolia
         Callback callbackContract = new Callback{value: 0.000001 ether}(callbackSender);
         console.log("Callback Contract Address (Sepolia):", address(callbackContract));
-
         vm.stopBroadcast();
     }
 }
 
 contract DeploySwap is Script {
     function run() external {
-        address universalRouter = vm.envAddress("UNIVERSAL_ROUTER_ADDRESS");
-        address permit2 = vm.envAddress("PERMIT2_ADDRESS");
+        string memory chain = vm.envString("CHAIN");
+        ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
+
+        address universalRouter = config.uniswapUniversalRouter;
+        address permit2 = config.uniswapPermit2;
 
         vm.startBroadcast();
         // Deploy the UniV4Swap contract on Sepolia
@@ -34,10 +39,14 @@ contract DeploySwap is Script {
 
 contract DeployCronReactive is Script {
     function run() external {
-        address service = vm.envAddress("SERVICE_ADDRESS");
-        uint256 cronTopic = 0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687; // ~1 minute
-        uint256 destinationChainId = vm.envUint("SEPOLIA_CHAIN_ID");
-        address callbackContractAddress = vm.envAddress("CALLBACK_CONTRACT_ADDRESS");
+        string memory chain = vm.envString("CHAIN");
+        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig = ConfigLib.readReactiveNetworkConfig();
+        ConfigLib.DestinationNetworkConfig memory callbackConfig = ConfigLib.readDestinationNetworkConfig(chain);
+
+        address service = reactiveNetworkConfig.reactiveSystemContract;
+        uint256 cronTopic = reactiveNetworkConfig.cronTopic;
+        uint256 destinationChainId = callbackConfig.chainId;
+        address callbackContractAddress = callbackConfig.callbackContract;
 
         vm.startBroadcast();
         // Deploy the Reactive contract on Lasna

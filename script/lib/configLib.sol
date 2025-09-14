@@ -7,24 +7,58 @@ import {stdJson} from "forge-std/StdJson.sol";
 library ConfigLib {
     using stdJson for string;
 
-    Vm constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
+    Vm constant _VM = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
-    struct UniswapV4Addresses {
-        address weth;
-        address usdc;
-        address universalRouter;
-        address poolManager;
-        address permit2;
+    struct ReactiveNetworkConfig {
+        address reactiveSystemContract;
+        address reactiveContract;
+        uint256 cronTopic;
     }
 
-    function readUniswapV4Addresses(string memory chain) internal view returns (UniswapV4Addresses memory a) {
+    struct CallbackConfig {
+        uint256 chainId;
+    }
+
+    struct DestinationNetworkConfig {
+        uint256 chainId;
+        string rpcUrl;
+        // Uniswap V4 specific
+        address weth;
+        address usdc;
+        address uniswapUniversalRouter;
+        address uniswapPoolManager;
+        address uniswapPermit2;
+        // Callback specific
+        address callbackProxyContract;
+        address callbackContract;
+    }
+
+    function readDestinationNetworkConfig(string memory chain)
+        internal
+        view
+        returns (DestinationNetworkConfig memory a)
+    {
         string memory path = "config/config.json";
-        string memory json = vm.readFile(path);
+        string memory json = _VM.readFile(path);
         string memory prefix = string.concat(".chains.", chain);
+        a.chainId = json.readUint(string.concat(prefix, ".chainId"));
+        a.rpcUrl = json.readString(string.concat(prefix, ".rpcUrl"));
         a.weth = json.readAddress(string.concat(prefix, ".weth"));
         a.usdc = json.readAddress(string.concat(prefix, ".usdc"));
-        a.universalRouter = json.readAddress(string.concat(prefix, ".uniswapUniversalRouter"));
-        a.poolManager = json.readAddress(string.concat(prefix, ".uniswapPoolManager"));
-        a.permit2 = json.readAddress(string.concat(prefix, ".uniswapPermit2"));
+        a.uniswapUniversalRouter = json.readAddress(string.concat(prefix, ".uniswapUniversalRouter"));
+        a.uniswapPoolManager = json.readAddress(string.concat(prefix, ".uniswapPoolManager"));
+        a.uniswapPermit2 = json.readAddress(string.concat(prefix, ".uniswapPermit2"));
+        a.callbackProxyContract = json.readAddress(string.concat(prefix, ".callbackProxyContract"));
+        a.callbackContract = json.readAddress(string.concat(prefix, ".callbackContract"));
+    }
+
+    // Reads the reactive addresses for the "lasna" chain
+    function readReactiveNetworkConfig() internal view returns (ReactiveNetworkConfig memory a) {
+        string memory path = "config/config.json";
+        string memory json = _VM.readFile(path);
+        string memory prefix = string.concat(".chains.", "lasna");
+        a.reactiveSystemContract = json.readAddress(string.concat(prefix, ".reactiveSystemContract"));
+        a.reactiveContract = json.readAddress(string.concat(prefix, ".reactiveContract"));
+        a.cronTopic = json.readUint(string.concat(prefix, ".cronTopic"));
     }
 }
