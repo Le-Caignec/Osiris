@@ -32,7 +32,7 @@ contract UniV4SwapTest is Test {
         vm.createSelectFork(vm.envString("ETHEREUM_RPC_URL"));
 
         // Déploie le contrat
-        uni = new UniV4Swap(UNIVERSAL_ROUTER, POOL_MANAGER, PERMIT2);
+        uni = new UniV4Swap(UNIVERSAL_ROUTER, PERMIT2);
 
         // Alimente l'utilisateur en ETH et wrap en WETH
         vm.deal(user, 10 ether);
