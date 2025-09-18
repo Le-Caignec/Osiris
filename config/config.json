@@ -17,8 +17,8 @@
             "uniswapUniversalRouter": "0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b",
             "uniswapPoolManager": "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
             "uniswapPermit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
-            "weth": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
-            "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+            "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
+            "usdc": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
             "callbackProxyContract":"0xc9f36411C9897e7F959D99ffca2a0Ba7ee0D7bDA",
             "callbackContract":"0x0000000000000000000000000000000000000000"
         },

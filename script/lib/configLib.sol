@@ -15,10 +15,6 @@ library ConfigLib {
         uint256 cronTopic;
     }
 
-    struct CallbackConfig {
-        uint256 chainId;
-    }
-
     struct DestinationNetworkConfig {
         uint256 chainId;
         string rpcUrl;
