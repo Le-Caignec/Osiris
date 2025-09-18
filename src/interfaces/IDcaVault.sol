@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.8.0;
 
-import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-
 interface IDcaVault {
     // Frequencies
     enum Frequency {

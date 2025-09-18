@@ -39,7 +39,6 @@ contract DcaVault is UniV4Swap, IDcaVault {
     // Swap route (must output native)
     PoolKey public swapPool;
     bool public zeroForOne;
-    uint128 public minOutAbsolute; // optional absolute min-out (0 to disable)
 
     /// @notice Initialize vault config and dependencies.
     /// @param _router UniversalRouter address.
@@ -137,7 +136,7 @@ contract DcaVault is UniV4Swap, IDcaVault {
         require(_batchSize > 0 && _batchSize <= 256, "bad batch");
         batchSize = _batchSize;
     }
-    
+
     /// @notice CronReactive tick entrypoint. Aggregates eligible users, swaps once, and distributes output.
     /// @param /*sender*/ CronReactive sender id (not used on-chain, reserved for off-chain correlation).
     function callback(address /*sender*/ ) external {
@@ -181,10 +180,9 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
         // Single swap USDC -> Native, keep proceeds in vault
         PoolKey memory key = swapPool; // copy storage to memory for internal call
-        uint256 nativeOut = swapExactInputSingle(key, zeroForOne, uint128(totalIn), minOutAbsolute);
-        if (minOutAbsolute > 0 && nativeOut < minOutAbsolute) {
-            revert IUniV4Swap.InsufficientOutput(nativeOut, minOutAbsolute);
-        }
+        // casting to 'uint128' is safe because 'totalIn' was bounded above
+        // forge-lint: disable-next-line(unsafe-typecast)
+        uint256 nativeOut = swapExactInputSingle(key, zeroForOne, uint128(totalIn), 0);
 
         // Distribute pro-rata and reschedule nextExec with catch-up
         uint256 remainingOut = nativeOut;
