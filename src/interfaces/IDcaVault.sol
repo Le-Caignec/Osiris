@@ -16,7 +16,7 @@ interface IDcaVault {
     event WithdrawnUSDC(address indexed user, uint256 amount);
     event ClaimedNative(address indexed user, uint256 amount);
     event PlanUpdated(address indexed user, Frequency freq, uint256 amountPerPeriod, bool active, uint64 nextExec);
-    event CallbackProcessed(uint256 usersProcessed, uint256 totalInUSDC, uint256 totalOutNative);
+    event CallbackProcessed(uint256 usersProcessed, uint256 totalInUsdc, uint256 totalOutNative);
 
     // Errors
     error NotOwner();
@@ -24,10 +24,11 @@ interface IDcaVault {
     error AmountZero();
     error InsufficientUSDC();
     error InvalidSwapRoute();
+    error AmountTooLarge();
 
     // User actions
-    function depositUSDC(uint256 amount) external;
-    function withdrawUSDC(uint256 amount) external;
+    function depositUsdc(uint256 amount) external;
+    function withdrawUsdc(uint256 amount) external;
     function claimNative(uint256 amount) external;
 
     // Plan management

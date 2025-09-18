@@ -13,9 +13,9 @@ contract DcaVault is UniV4Swap, IDcaVault {
     using SafeERC20 for IERC20;
     using CurrencyLibrary for Currency;
 
-    // Roles/config
-    address public immutable owner;
-    address public immutable callbackSender; // authorized CronReactive sender
+    // Roles/config (immutables in SCREAMING_SNAKE_CASE)
+    address public immutable OWNER;
+    address public immutable CALLBACK_SENDER; // authorized CronReactive sender
     IERC20 public immutable USDC;
 
     struct Plan {
@@ -50,11 +50,11 @@ contract DcaVault is UniV4Swap, IDcaVault {
     constructor(address _router, address _permit2, address _usdc, address _callbackSender, uint256 _batchSize)
         UniV4Swap(_router, _permit2)
     {
-        owner = msg.sender;
-        if (_callbackSender == address(0)) revert NotCallbackSender();
-        callbackSender = _callbackSender;
+        OWNER = msg.sender;
+        if (_callbackSender == address(0)) revert IDcaVault.NotCallbackSender();
+        CALLBACK_SENDER = _callbackSender;
 
-        if (_usdc == address(0)) revert InvalidSwapRoute();
+        if (_usdc == address(0)) revert IDcaVault.InvalidSwapRoute();
         USDC = IERC20(_usdc);
 
         batchSize = _batchSize == 0 ? 32 : _batchSize;
@@ -62,8 +62,8 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
     /// @notice Deposit USDC to the vault to fund your DCA.
     /// @param amount amount of USDC to deposit.
-    function depositUSDC(uint256 amount) external {
-        if (amount == 0) revert AmountZero();
+    function depositUsdc(uint256 amount) external {
+        if (amount == 0) revert IDcaVault.AmountZero();
         USDC.safeTransferFrom(msg.sender, address(this), amount);
         usdcBalance[msg.sender] += amount;
         emit DepositedUSDC(msg.sender, amount);
@@ -71,10 +71,10 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
     /// @notice Withdraw USDC from your vault balance.
     /// @param amount amount of USDC to withdraw.
-    function withdrawUSDC(uint256 amount) external {
-        if (amount == 0) revert AmountZero();
+    function withdrawUsdc(uint256 amount) external {
+        if (amount == 0) revert IDcaVault.AmountZero();
         uint256 bal = usdcBalance[msg.sender];
-        if (bal < amount) revert InsufficientUSDC();
+        if (bal < amount) revert IDcaVault.InsufficientUSDC();
         usdcBalance[msg.sender] = bal - amount;
         USDC.safeTransfer(msg.sender, amount);
         emit WithdrawnUSDC(msg.sender, amount);
@@ -83,12 +83,12 @@ contract DcaVault is UniV4Swap, IDcaVault {
     /// @notice Claim accumulated native output from executed DCA swaps.
     /// @param amount amount of native token to claim.
     function claimNative(uint256 amount) external {
-        if (amount == 0) revert AmountZero();
+        if (amount == 0) revert IDcaVault.AmountZero();
         uint256 bal = nativeBalance[msg.sender];
         require(bal >= amount, "insufficient native");
         nativeBalance[msg.sender] = bal - amount;
         (bool ok,) = msg.sender.call{value: amount}("");
-        if (!ok) revert NativeTransferFailed();
+        if (!ok) revert IUniV4Swap.NativeTransferFailed();
         emit ClaimedNative(msg.sender, amount);
     }
 
@@ -97,9 +97,12 @@ contract DcaVault is UniV4Swap, IDcaVault {
     /// @param amountPerPeriod USDC amount to DCA each period.
     /// @param active whether the plan is active.
     function setPlan(IDcaVault.Frequency freq, uint256 amountPerPeriod, bool active) external {
-        if (amountPerPeriod == 0 && active) revert AmountZero();
+        if (amountPerPeriod == 0 && active) revert IDcaVault.AmountZero();
+        if (amountPerPeriod > type(uint128).max) revert IDcaVault.AmountTooLarge(); // bound cast
         Plan storage p = plans[msg.sender];
         p.freq = freq;
+        // casting to 'uint128' is safe because we bounded amountPerPeriod above
+        // forge-lint: disable-next-line(unsafe-typecast)
         p.amountPerPeriod = uint128(amountPerPeriod);
         p.active = active;
         if (p.nextExec == 0 || active) {
@@ -130,32 +133,15 @@ contract DcaVault is UniV4Swap, IDcaVault {
     /// @notice Set the maximum number of users processed per callback tick.
     /// @param _batchSize new batch size (1..256).
     function setBatchSize(uint256 _batchSize) external {
-        if (msg.sender != owner) revert NotOwner();
+        if (msg.sender != OWNER) revert IDcaVault.NotOwner();
         require(_batchSize > 0 && _batchSize <= 256, "bad batch");
         batchSize = _batchSize;
     }
-
-    /// @notice Configure the swap route (must be USDC-in, native-out).
-    /// @param key Uniswap v4 PoolKey to use.
-    /// @param _zeroForOne true for currency0->currency1, false for currency1->currency0.
-    function setSwapRoute(PoolKey calldata key, bool _zeroForOne) external {
-        if (msg.sender != owner) revert NotOwner();
-        _validateSwapRoute(key, _zeroForOne);
-        swapPool = key;
-        zeroForOne = _zeroForOne;
-    }
-
-    /// @notice Set an absolute minimum acceptable output for aggregated swaps.
-    /// @param _minOutAbsolute minimum amount of native output (0 disables).
-    function setMinOutAbsolute(uint128 _minOutAbsolute) external {
-        if (msg.sender != owner) revert NotOwner();
-        minOutAbsolute = _minOutAbsolute;
-    }
-
+    
     /// @notice CronReactive tick entrypoint. Aggregates eligible users, swaps once, and distributes output.
     /// @param /*sender*/ CronReactive sender id (not used on-chain, reserved for off-chain correlation).
     function callback(address /*sender*/ ) external {
-        if (msg.sender != callbackSender) revert NotCallbackSender();
+        if (msg.sender != CALLBACK_SENDER) revert IDcaVault.NotCallbackSender();
 
         uint256 n = users.length;
         if (n == 0) return;
@@ -191,9 +177,10 @@ contract DcaVault is UniV4Swap, IDcaVault {
         if (totalIn == 0) {
             return;
         }
+        if (totalIn > type(uint128).max) revert IDcaVault.AmountTooLarge(); // bound cast
 
-        // Single swap USDC -> Native, keep proceeds in vault (copy PoolKey to memory to satisfy calldata requirement)
-        PoolKey memory key = swapPool;
+        // Single swap USDC -> Native, keep proceeds in vault
+        PoolKey memory key = swapPool; // copy storage to memory for internal call
         uint256 nativeOut = swapExactInputSingle(key, zeroForOne, uint128(totalIn), minOutAbsolute);
         if (minOutAbsolute > 0 && nativeOut < minOutAbsolute) {
             revert IUniV4Swap.InsufficientOutput(nativeOut, minOutAbsolute);
@@ -237,15 +224,21 @@ contract DcaVault is UniV4Swap, IDcaVault {
     }
 
     function _nextAfter(uint256 fromTs, IDcaVault.Frequency f) internal pure returns (uint64) {
+        // casting to 'uint64' is safe because block timestamps and periods fit well within 2^64
+        // forge-lint: disable-next-line(unsafe-typecast)
         return uint64(fromTs + _period(f));
     }
 
     function _catchupNext(uint64 prevNext, IDcaVault.Frequency f, uint256 nowTs) internal pure returns (uint64) {
         uint64 period = _period(f);
+        // casting to 'uint64' is safe because block timestamps fit within 2^64
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint64 next = prevNext == 0 ? uint64(nowTs) + period : prevNext;
         if (next > nowTs) return next;
         uint256 delta = nowTs - next;
         uint256 missed = (delta / period) + 1;
+        // casting to 'uint64' is safe because 'missed' is a count of periods and fits within 2^64 for practical horizons
+        // forge-lint: disable-next-line(unsafe-typecast)
         return next + uint64(missed) * period;
     }
 
@@ -253,7 +246,9 @@ contract DcaVault is UniV4Swap, IDcaVault {
     function _validateSwapRoute(PoolKey memory key, bool _zeroForOne) internal view {
         Currency inCurrency = _zeroForOne ? key.currency0 : key.currency1;
         Currency outCurrency = _zeroForOne ? key.currency1 : key.currency0;
-        if (!outCurrency.isAddressZero()) revert InvalidSwapRoute();
-        if (inCurrency.isAddressZero() || Currency.unwrap(inCurrency) != address(USDC)) revert InvalidSwapRoute();
+        if (!outCurrency.isAddressZero()) revert IDcaVault.InvalidSwapRoute();
+        if (inCurrency.isAddressZero() || Currency.unwrap(inCurrency) != address(USDC)) {
+            revert IDcaVault.InvalidSwapRoute();
+        }
     }
 }
