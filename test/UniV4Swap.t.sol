@@ -24,8 +24,8 @@ contract UniV4SwapTest is Test {
     UniV4Swap private uni;
     address private user = makeAddr("user");
 
-    uint24 constant FEE = 500; // 0.05%
-    int24 constant TICK_SPACING = 10;
+    uint24 constant FEE = 3000; // 0.3%
+    int24 constant TICK_SPACING = 60;
 
     function setUp() public {
         string memory chain = vm.envString("CHAIN");

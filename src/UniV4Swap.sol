@@ -30,8 +30,8 @@ contract UniV4Swap {
         UNISWAP_PERMIT2 = IPermit2(_permit2);
     }
 
-    function swapExactInputSingle(PoolKey calldata key, bool zeroForOne, uint128 amountIn, uint128 minAmountOut)
-        external
+    function swapExactInputSingle(PoolKey memory key, bool zeroForOne, uint128 amountIn, uint128 minAmountOut)
+        public
         payable
         returns (uint256 amountOut)
     {
