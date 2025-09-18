@@ -239,14 +239,4 @@ contract DcaVault is UniV4Swap, IDcaVault {
         // forge-lint: disable-next-line(unsafe-typecast)
         return next + uint64(missed) * period;
     }
-
-    // Route validator: enforce USDC-in, native-out
-    function _validateSwapRoute(PoolKey memory key, bool _zeroForOne) internal view {
-        Currency inCurrency = _zeroForOne ? key.currency0 : key.currency1;
-        Currency outCurrency = _zeroForOne ? key.currency1 : key.currency0;
-        if (!outCurrency.isAddressZero()) revert IDcaVault.InvalidSwapRoute();
-        if (inCurrency.isAddressZero() || Currency.unwrap(inCurrency) != address(USDC)) {
-            revert IDcaVault.InvalidSwapRoute();
-        }
-    }
 }
