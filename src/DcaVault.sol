@@ -9,6 +9,7 @@ import {UniV4Swap} from "./UniV4Swap.sol";
 import {IDcaVault} from "./interfaces/IDcaVault.sol";
 import {IUniV4Swap} from "./interfaces/IUniV4Swap.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {DcaPlanLib} from "./lib/DcaPlanLib.sol";
 
 contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -33,7 +34,7 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
 
     // Round-robin bounded processing
     address[] public users;
-    mapping(address => bool) private inSet;
+    mapping(address => bool) private isUserListed;
     uint256 public cursor;
     uint256 public batchSize;
 
@@ -98,7 +99,7 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
     /// @param amountPerPeriod USDC amount to DCA each period.
     /// @param active whether the plan is active.
     function setPlan(IDcaVault.Frequency freq, uint256 amountPerPeriod, bool active) external {
-        if (amountPerPeriod == 0 && active) revert IDcaVault.AmountZero();
+        if (amountPerPeriod == 0) revert IDcaVault.AmountZero();
         if (amountPerPeriod > type(uint128).max) revert IDcaVault.AmountTooLarge(); // bound cast
         Plan storage p = plans[msg.sender];
         p.freq = freq;
@@ -107,9 +108,9 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         p.amountPerPeriod = uint128(amountPerPeriod);
         p.active = active;
         if (p.nextExec == 0 || active) {
-            p.nextExec = _nextAfter(block.timestamp, freq);
+            p.nextExec = DcaPlanLib.nextExecutionAfter(block.timestamp, freq);
         }
-        _ensureListed(msg.sender);
+        DcaPlanLib.ensureUserListed(isUserListed, users, msg.sender);
         emit PlanUpdated(msg.sender, freq, amountPerPeriod, active, p.nextExec);
     }
 
@@ -125,9 +126,9 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         Plan storage p = plans[msg.sender];
         p.active = true;
         if (p.nextExec < block.timestamp) {
-            p.nextExec = _nextAfter(block.timestamp, p.freq);
+            p.nextExec = DcaPlanLib.nextExecutionAfter(block.timestamp, p.freq);
         }
-        _ensureListed(msg.sender);
+        DcaPlanLib.ensureUserListed(isUserListed, users, msg.sender);
         emit PlanUpdated(msg.sender, p.freq, p.amountPerPeriod, true, p.nextExec);
     }
 
@@ -203,42 +204,9 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
             }
             nativeBalance[u2] += outAmt;
 
-            plans[u2].nextExec = _catchupNext(plans[u2].nextExec, plans[u2].freq, nowTs);
+            plans[u2].nextExec = DcaPlanLib.catchUpNextExecution(plans[u2].nextExec, plans[u2].freq, nowTs);
         }
 
         emit CallbackProcessed(m, totalIn, nativeOut);
-    }
-
-    // ---------- Internals ----------
-    function _ensureListed(address u) internal {
-        if (!inSet[u]) {
-            inSet[u] = true;
-            users.push(u);
-        }
-    }
-
-    function _period(IDcaVault.Frequency f) internal pure returns (uint64) {
-        if (f == IDcaVault.Frequency.Daily) return 1 days;
-        if (f == IDcaVault.Frequency.Weekly) return 7 days;
-        return 30 days;
-    }
-
-    function _nextAfter(uint256 fromTs, IDcaVault.Frequency f) internal pure returns (uint64) {
-        // casting to 'uint64' is safe because block timestamps and periods fit well within 2^64
-        // forge-lint: disable-next-line(unsafe-typecast)
-        return uint64(fromTs + _period(f));
-    }
-
-    function _catchupNext(uint64 prevNext, IDcaVault.Frequency f, uint256 nowTs) internal pure returns (uint64) {
-        uint64 period = _period(f);
-        // casting to 'uint64' is safe because block timestamps fit within 2^64
-        // forge-lint: disable-next-line(unsafe-typecast)
-        uint64 next = prevNext == 0 ? uint64(nowTs) + period : prevNext;
-        if (next > nowTs) return next;
-        uint256 delta = nowTs - next;
-        uint256 missed = (delta / period) + 1;
-        // casting to 'uint64' is safe because 'missed' is a count of periods and fits within 2^64 for practical horizons
-        // forge-lint: disable-next-line(unsafe-typecast)
-        return next + uint64(missed) * period;
     }
 }
