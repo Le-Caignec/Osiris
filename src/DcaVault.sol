@@ -8,12 +8,13 @@ import {Currency, CurrencyLibrary} from "@uniswap/v4-core/src/types/Currency.sol
 import {UniV4Swap} from "./UniV4Swap.sol";
 import {IDcaVault} from "./interfaces/IDcaVault.sol";
 import {IUniV4Swap} from "./interfaces/IUniV4Swap.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract DcaVault is UniV4Swap, IDcaVault {
+contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using CurrencyLibrary for Currency;
 
-    // Roles/config (immutables in SCREAMING_SNAKE_CASE)
+    // Roles/config
     address public immutable OWNER;
     address public immutable CALLBACK_SENDER; // authorized CronReactive sender
     IERC20 public immutable USDC;
@@ -60,6 +61,7 @@ contract DcaVault is UniV4Swap, IDcaVault {
     }
 
     /// @notice Deposit USDC to the vault to fund your DCA.
+    /// This function requires prior USDC approval.
     /// @param amount amount of USDC to deposit.
     function depositUsdc(uint256 amount) external {
         if (amount == 0) revert IDcaVault.AmountZero();
@@ -81,7 +83,7 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
     /// @notice Claim accumulated native output from executed DCA swaps.
     /// @param amount amount of native token to claim.
-    function claimNative(uint256 amount) external {
+    function claimNative(uint256 amount) external nonReentrant {
         if (amount == 0) revert IDcaVault.AmountZero();
         uint256 bal = nativeBalance[msg.sender];
         require(bal >= amount, "insufficient native");
