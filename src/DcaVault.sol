@@ -41,14 +41,6 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         mapping(address => Plan) plans;
     }
 
-    function _getDcaVaultStorage() private pure returns (DcaVaultStorage storage $) {
-        //slither-disable-start assembly
-        assembly ("memory-safe") {
-            $.slot := DCA_VAULT_STORAGE_LOCATION
-        }
-        //slither-disable-end assembly
-    }
-
     struct Plan {
         IDcaVault.Frequency freq;
         uint128 amountPerPeriod;
@@ -69,6 +61,7 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
     }
 
     // ---------- Public getters to preserve interface ----------
+
     /// @notice Deposit USDC to the vault to fund your DCA.
     /// This function requires prior USDC approval.
     /// @param amount amount of USDC to deposit.
@@ -226,5 +219,13 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         }
 
         emit CallbackProcessed(m, totalIn, nativeOut);
+    }
+
+    function _getDcaVaultStorage() private pure returns (DcaVaultStorage storage $) {
+        //slither-disable-start assembly
+        assembly ("memory-safe") {
+            $.slot := DCA_VAULT_STORAGE_LOCATION
+        }
+        //slither-disable-end assembly
     }
 }
