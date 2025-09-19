@@ -34,9 +34,6 @@ interface IDcaVault {
     function pausePlan() external;
     function resumePlan() external;
 
-    // Admin
-    function setBatchSize(uint256 _batchSize) external;
-
     // CronReactive tick
     function callback(address sender) external;
 }

@@ -30,8 +30,6 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         // Round-robin bounded processing
         address[] users;
         mapping(address => bool) isUserListed;
-        uint256 cursor;
-        uint256 batchSize;
         // Swap route (must output native)
         PoolKey swapPool;
         bool zeroForOne;
@@ -48,7 +46,7 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         bool active;
     }
 
-    constructor(address _router, address _permit2, address _usdc, address _callbackSender, uint256 _batchSize)
+    constructor(address _router, address _permit2, address _usdc, address _callbackSender)
         UniV4Swap(_router, _permit2)
     {
         DcaVaultStorage storage $ = _getDcaVaultStorage();
@@ -57,7 +55,6 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         $.callbackSender = _callbackSender;
         if (_usdc == address(0)) revert IDcaVault.InvalidSwapRoute();
         $.usdc = IERC20(_usdc);
-        $.batchSize = _batchSize == 0 ? 32 : _batchSize;
     }
 
     // ---------- Public getters to preserve interface ----------
@@ -139,15 +136,6 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         emit PlanUpdated(msg.sender, p.freq, p.amountPerPeriod, true, p.nextExec);
     }
 
-    /// @notice Set the maximum number of users processed per callback tick.
-    /// @param _batchSize new batch size (1..256).
-    function setBatchSize(uint256 _batchSize) external {
-        DcaVaultStorage storage $ = _getDcaVaultStorage();
-        if (msg.sender != $.owner) revert IDcaVault.NotOwner();
-        require(_batchSize > 0 && _batchSize <= 256, "bad batch");
-        $.batchSize = _batchSize;
-    }
-
     /// @notice CronReactive tick entrypoint. Aggregates eligible users, swaps once, and distributes output.
     /// @param /*sender*/ CronReactive sender id (not used on-chain, reserved for off-chain correlation).
     function callback(address /*sender*/ ) external {
@@ -157,18 +145,15 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         uint256 n = $.users.length;
         if (n == 0) return;
 
-        uint256 bSize = $.batchSize;
-        address[] memory bufUsers = new address[](bSize);
-        uint256[] memory bufAmounts = new uint256[](bSize);
+        address[] memory bufUsers = new address[](n);
+        uint256[] memory bufAmounts = new uint256[](n);
 
         uint256 totalIn = 0;
         uint256 m = 0;
         uint256 nowTs = block.timestamp;
 
-        uint256 i = 0;
-        uint256 idx = $.cursor;
-        while (i < n && m < bSize) {
-            address u = $.users[idx];
+        for (uint256 i = 0; i < n; i++) {
+            address u = $.users[i];
             Plan storage p = $.plans[u];
 
             if (p.active && p.nextExec != 0 && p.nextExec <= nowTs) {
@@ -180,11 +165,7 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
                     m++;
                 }
             }
-
-            idx = (idx + 1) % n;
-            i++;
         }
-        $.cursor = idx;
 
         if (totalIn == 0) {
             return;
