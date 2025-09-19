@@ -16,7 +16,11 @@ library DcaPlanLib {
         return uint64(fromTs + dcaPeriod(f));
     }
 
-    function catchUpNextExecution(uint64 prevNext, IDcaVault.Frequency f, uint256 nowTs) internal pure returns (uint64) {
+    function catchUpNextExecution(uint64 prevNext, IDcaVault.Frequency f, uint256 nowTs)
+        internal
+        pure
+        returns (uint64)
+    {
         uint64 p = dcaPeriod(f);
         // casting to 'uint64' is safe because block timestamps fit within 2^64
         // forge-lint: disable-next-line(unsafe-typecast)
@@ -29,7 +33,9 @@ library DcaPlanLib {
         return next + uint64(missed) * p;
     }
 
-    function ensureUserListed(mapping(address => bool) storage isUserListed, address[] storage users, address u) internal {
+    function ensureUserListed(mapping(address => bool) storage isUserListed, address[] storage users, address u)
+        internal
+    {
         if (!isUserListed[u]) {
             isUserListed[u] = true;
             users.push(u);
