@@ -9,6 +9,14 @@ interface IDcaVault {
         Monthly
     }
 
+    // Shared plan type
+    struct DcaPlan {
+        Frequency freq;
+        uint128 amountPerPeriod;
+        uint64 nextExecutionTimestamp;
+        bool active;
+    }
+
     // Events
     event DepositedUSDC(address indexed user, uint256 amount);
     event WithdrawnUSDC(address indexed user, uint256 amount);

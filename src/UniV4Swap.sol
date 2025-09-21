@@ -12,8 +12,9 @@ import {StateLibrary} from "@uniswap/v4-core/src/libraries/StateLibrary.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {Currency, CurrencyLibrary} from "@uniswap/v4-core/src/types/Currency.sol";
 import {IPermit2} from "@uniswap/permit2/src/interfaces/IPermit2.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract UniV4Swap {
+contract UniV4Swap is ReentrancyGuard {
     using StateLibrary for IPoolManager;
     using CurrencyLibrary for Currency;
     using SafeERC20 for IERC20;
@@ -33,6 +34,7 @@ contract UniV4Swap {
     function swapExactInputSingle(PoolKey memory key, bool zeroForOne, uint128 amountIn, uint128 minAmountOut)
         public
         payable
+        nonReentrant
         returns (uint256 amountOut)
     {
         // pick input/output based on direction
