@@ -33,8 +33,8 @@ contract UniV4Swap is ReentrancyGuard {
 
     function swapExactInputSingle(PoolKey memory key, bool zeroForOne, uint128 amountIn, uint128 minAmountOut)
         public
-        virtual
         payable
+        virtual
         nonReentrant
         returns (uint256 amountOut)
     {

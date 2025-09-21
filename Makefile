@@ -8,9 +8,9 @@
 fork-sepolia:
 	anvil --fork-url $(SEPOLIA_RPC_URL) --port 8545
 
-test-all:
-	# Run tests with gas reporting
-	forge test -vvvv --gas-report
+test-unit:
+	# Run units tests with gas reporting
+	forge test -vvv --gas-report --match-path "./test/units/**"
 
 # Deployment Commands
 deploy-reactive:

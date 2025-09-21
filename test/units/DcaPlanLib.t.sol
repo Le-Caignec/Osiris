@@ -24,17 +24,17 @@ contract DcaPlanLibTest is Test {
 
     // --- dcaPeriod ---
 
-    function test_dcaPeriod_Daily() pure public {
+    function test_dcaPeriod_Daily() public pure {
         uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Daily);
         assertEq(p, 1 days, "Daily period should be 1 day");
     }
 
-    function test_dcaPeriod_Weekly() pure public {
+    function test_dcaPeriod_Weekly() public pure {
         uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Weekly);
         assertEq(p, 7 days, "Weekly period should be 7 days");
     }
 
-    function test_dcaPeriod_DefaultMonthly() pure public {
+    function test_dcaPeriod_DefaultMonthly() public pure {
         // Any non-Daily/Weekly should map to 30 days per the lib
         uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Monthly);
         assertEq(p, 30 days, "Default period should be 30 days");
@@ -42,7 +42,7 @@ contract DcaPlanLibTest is Test {
 
     // --- nextExecutionAfter ---
 
-    function test_nextExecutionAfter_AddsPeriodAndCasts() pure public {
+    function test_nextExecutionAfter_AddsPeriodAndCasts() public pure {
         uint256 fromTs = 1_000;
         uint64 expectTs = uint64(fromTs + 1 days);
         uint64 next = DcaPlanLib.nextExecutionAfter(fromTs, IDcaVault.Frequency.Daily);
