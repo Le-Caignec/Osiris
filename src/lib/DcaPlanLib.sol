@@ -19,8 +19,6 @@ library DcaPlanLib {
     // Updates the plan's nextExecutionTimestamp in-place and returns the new value
     function catchUpNextExecution(IDcaVault.DcaPlan storage plan, uint256 nowTs) internal returns (uint64) {
         uint64 p = dcaPeriod(plan.freq);
-        // casting to 'uint64' is safe because block timestamps fit within 2^64
-        // forge-lint: disable-next-line(unsafe-typecast)
         uint64 next = plan.nextExecutionTimestamp == 0 ? uint64(nowTs) + p : plan.nextExecutionTimestamp;
         if (next > nowTs) {
             plan.nextExecutionTimestamp = next;
@@ -28,8 +26,6 @@ library DcaPlanLib {
         }
         uint256 delta = nowTs - next;
         uint256 missed = (delta / p) + 1;
-        // casting to 'uint64' is safe because 'missed' fits within 2^64 for practical horizons
-        // forge-lint: disable-next-line(unsafe-typecast)
         uint64 newNext = next + uint64(missed) * p;
         plan.nextExecutionTimestamp = newNext;
         return newNext;

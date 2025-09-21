@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.8.13;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {IDcaVault} from "../../src/interfaces/IDcaVault.sol";
 import {DcaPlanLib} from "../../src/lib/DcaPlanLib.sol";
 
