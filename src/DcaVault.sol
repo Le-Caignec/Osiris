@@ -42,7 +42,7 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
     struct Plan {
         IDcaVault.Frequency freq;
         uint128 amountPerPeriod;
-        uint64 nextExec;
+        uint64 nextExecutionTimestamp;
         bool active;
     }
 
@@ -103,37 +103,41 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         if (amountPerPeriod == 0) revert IDcaVault.AmountZero();
         if (amountPerPeriod > type(uint128).max) revert IDcaVault.AmountTooLarge(); // bound cast
         DcaVaultStorage storage $ = _getDcaVaultStorage();
-        Plan storage p = $.plans[msg.sender];
-        p.freq = freq;
+        Plan storage selectedUserPlan = $.plans[msg.sender];
+        selectedUserPlan.freq = freq;
         // casting to 'uint128' is safe because we bounded amountPerPeriod above
         // forge-lint: disable-next-line(unsafe-typecast)
-        p.amountPerPeriod = uint128(amountPerPeriod);
-        p.active = active;
-        if (p.nextExec == 0 || active) {
-            p.nextExec = DcaPlanLib.nextExecutionAfter(block.timestamp, freq);
+        selectedUserPlan.amountPerPeriod = uint128(amountPerPeriod);
+        selectedUserPlan.active = active;
+        if (selectedUserPlan.nextExecutionTimestamp == 0 || active) {
+            selectedUserPlan.nextExecutionTimestamp = DcaPlanLib.nextExecutionAfter(block.timestamp, freq);
         }
         DcaPlanLib.ensureUserListed($.isUserListed, $.users, msg.sender);
-        emit PlanUpdated(msg.sender, freq, amountPerPeriod, active, p.nextExec);
+        emit PlanUpdated(msg.sender, freq, amountPerPeriod, active, selectedUserPlan.nextExecutionTimestamp);
     }
 
     /// @notice Pause your DCA plan (keeps schedule and balances).
     function pausePlan() external {
         DcaVaultStorage storage $ = _getDcaVaultStorage();
-        Plan storage p = $.plans[msg.sender];
-        p.active = false;
-        emit PlanUpdated(msg.sender, p.freq, p.amountPerPeriod, false, p.nextExec);
+        Plan storage selectedUserPlan = $.plans[msg.sender];
+        selectedUserPlan.active = false;
+        emit PlanUpdated(
+            msg.sender, selectedUserPlan.freq, selectedUserPlan.amountPerPeriod, false, selectedUserPlan.nextExecutionTimestamp
+        );
     }
 
     /// @notice Resume your DCA plan. If overdue, schedules the next period from now.
     function resumePlan() external {
         DcaVaultStorage storage $ = _getDcaVaultStorage();
-        Plan storage p = $.plans[msg.sender];
-        p.active = true;
-        if (p.nextExec < block.timestamp) {
-            p.nextExec = DcaPlanLib.nextExecutionAfter(block.timestamp, p.freq);
+        Plan storage selectedUserPlan = $.plans[msg.sender];
+        selectedUserPlan.active = true;
+        if (selectedUserPlan.nextExecutionTimestamp < block.timestamp) {
+            selectedUserPlan.nextExecutionTimestamp = DcaPlanLib.nextExecutionAfter(block.timestamp, selectedUserPlan.freq);
         }
         DcaPlanLib.ensureUserListed($.isUserListed, $.users, msg.sender);
-        emit PlanUpdated(msg.sender, p.freq, p.amountPerPeriod, true, p.nextExec);
+        emit PlanUpdated(
+            msg.sender, selectedUserPlan.freq, selectedUserPlan.amountPerPeriod, true, selectedUserPlan.nextExecutionTimestamp
+        );
     }
 
     /// @notice CronReactive tick entrypoint. Aggregates eligible users, swaps once, and distributes output.
@@ -142,24 +146,24 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         DcaVaultStorage storage $ = _getDcaVaultStorage();
         if (msg.sender != $.callbackSender) revert IDcaVault.NotCallbackSender();
 
-        uint256 n = $.users.length;
-        if (n == 0) return;
+        uint256 nbOfUser = $.users.length;
+        if (nbOfUser == 0) return;
 
-        address[] memory bufUsers = new address[](n);
-        uint256[] memory bufAmounts = new uint256[](n);
+        address[] memory bufUsers = new address[](nbOfUser);
+        uint256[] memory bufAmounts = new uint256[](nbOfUser);
 
         uint256 totalIn = 0;
         uint256 m = 0;
         uint256 nowTs = block.timestamp;
 
-        for (uint256 i = 0; i < n; i++) {
-            address u = $.users[i];
-            Plan storage p = $.plans[u];
+        for (uint256 i = 0; i < nbOfUser; i++) {
+            address selectedUser = $.users[i];
+            Plan storage selectedUserPlan = $.plans[selectedUser];
 
-            if (p.active && p.nextExec != 0 && p.nextExec <= nowTs) {
-                uint256 amt = uint256(p.amountPerPeriod);
-                if (amt > 0 && $.usdcBalance[u] >= amt) {
-                    bufUsers[m] = u;
+            if (selectedUserPlan.active && selectedUserPlan.nextExecutionTimestamp != 0 && selectedUserPlan.nextExecutionTimestamp <= nowTs) {
+                uint256 amt = uint256(selectedUserPlan.amountPerPeriod);
+                if (amt > 0 && $.usdcBalance[selectedUser] >= amt) {
+                    bufUsers[m] = selectedUser;
                     bufAmounts[m] = amt;
                     totalIn += amt;
                     m++;
@@ -179,7 +183,7 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
         // forge-lint: disable-next-line(unsafe-typecast)
         uint256 nativeOut = swapExactInputSingle(key, zf1, uint128(totalIn), 0);
 
-        // Distribute pro-rata and reschedule nextExec with catch-up
+        // Distribute pro-rata and reschedule nextExecutionTimestamp with catch-up
         uint256 remainingOut = nativeOut;
         for (uint256 j = 0; j < m; j++) {
             address u2 = bufUsers[j];
@@ -196,7 +200,7 @@ contract DcaVault is UniV4Swap, IDcaVault, ReentrancyGuard {
             }
             $.nativeBalance[u2] += outAmt;
 
-            $.plans[u2].nextExec = DcaPlanLib.catchUpNextExecution($.plans[u2].nextExec, $.plans[u2].freq, nowTs);
+            $.plans[u2].nextExecutionTimestamp = DcaPlanLib.catchUpNextExecution($.plans[u2].nextExecutionTimestamp, $.plans[u2].freq, nowTs);
         }
 
         emit CallbackProcessed(m, totalIn, nativeOut);
