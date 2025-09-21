@@ -11,7 +11,7 @@ import {IUniV4Swap} from "./interfaces/IUniV4Swap.sol";
 import {DcaPlanLib} from "./lib/DcaPlanLib.sol";
 
 /// @custom:storage-location erc7201:orion.dca.storage
-contract DcaVault is UniV4Swap, IDcaVault /*, ReentrancyGuard if needed */ {
+contract DcaVault is UniV4Swap, IDcaVault {
     using SafeERC20 for IERC20;
     using CurrencyLibrary for Currency;
 

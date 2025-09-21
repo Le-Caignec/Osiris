@@ -2,13 +2,13 @@
 pragma solidity ^0.8.23;
 
 import {Test, console} from "forge-std/Test.sol";
-import {UniV4Swap} from "../src/UniV4Swap.sol";
+import {UniV4Swap} from "../../src/UniV4Swap.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IWETH} from "./mock/IWETH.sol";
-import {ConfigLib} from "../script/lib/configLib.sol";
+import {ConfigLib} from "../../script/lib/configLib.sol";
 
 contract UniV4SwapTest is Test {
     // Loaded from config at setUp
