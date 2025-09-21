@@ -28,7 +28,7 @@ contract UniV4SwapTest is Test {
     int24 constant TICK_SPACING = 60;
 
     function setUp() public {
-        string memory chain = vm.envString("CHAIN");
+        string memory chain = vm.envOr("CHAIN", string("ethereum"));
         ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
         vm.createSelectFork(config.rpcUrl);
 

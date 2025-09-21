@@ -37,8 +37,6 @@ contract DcaVault_Units is Test {
         // Read from config.json like in UniV4Swap tests
         string memory chain = vm.envOr("CHAIN", string("ethereum"));
         ConfigLib.DestinationNetworkConfig memory cfg = ConfigLib.readDestinationNetworkConfig(chain);
-        require(cfg.chainId != 0, "config: unknown chain");
-        require(bytes(cfg.rpcUrl).length != 0, "config: missing rpc");
         vm.createSelectFork(cfg.rpcUrl);
 
         universalRouter = cfg.uniswapUniversalRouter;
