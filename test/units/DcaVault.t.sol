@@ -156,14 +156,9 @@ contract DcaVault_Units is Test {
     // -----------------------------
     // Callback authorization
     // -----------------------------
-    function test_callback_reverts_if_notAuthorized() public {
-        vm.expectRevert(abi.encodeWithSelector(IDcaVault.NotCallbackSender.selector));
-        vault.callback(address(0xBEEF));
-    }
-
     function test_callback_byAuthorized_doesNotRevert_whenNoEligibleUsers() public {
-        // No plans/deposits => should be a no-op but callable by authorized sender
+        // No plans/deposits => should be a no-op
         vm.prank(callbackSender);
-        vault.callback(makeAddr("SENT"));
+        vault.callback();
     }
 }

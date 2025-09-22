@@ -130,10 +130,8 @@ contract DcaVault is UniV4Swap, IDcaVault {
     }
 
     /// @notice CronReactive tick entrypoint. Aggregates eligible users, swaps once, and distributes output.
-    /// @param /*sender*/ CronReactive sender id (not used on-chain, reserved for off-chain correlation).
-    function callback(address /*sender*/ ) external {
+    function callback() external {
         DcaVaultStorage storage $ = _getDcaVaultStorage();
-        if (msg.sender != $.callbackSender) revert IDcaVault.NotCallbackSender();
 
         uint256 nbOfUser = $.users.length;
         if (nbOfUser == 0) return;

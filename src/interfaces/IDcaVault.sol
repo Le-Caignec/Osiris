@@ -42,5 +42,5 @@ interface IDcaVault {
     function resumePlan() external;
 
     // CronReactive tick
-    function callback(address sender) external;
+    function callback() external;
 }
