@@ -41,10 +41,9 @@ contract DcaVaultTest is Test {
         universalRouter = address(routerMock);
         permit2 = cfg.uniswapPermit2;
         usdcAddress = cfg.usdc;
-        callbackSender = cfg.callbackProxyContract != address(0) ? cfg.callbackProxyContract : address(this);
 
         usdc = IERC20(usdcAddress);
-        vault = new DcaVault(universalRouter, permit2, usdcAddress, callbackSender);
+        vault = new DcaVault(universalRouter, permit2, usdcAddress);
 
         // labels for nicer traces
         vm.label(address(vault), "DcaVault");

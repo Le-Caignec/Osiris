@@ -4,6 +4,7 @@ pragma solidity >=0.8.0;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
+import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {Currency, CurrencyLibrary} from "@uniswap/v4-core/src/types/Currency.sol";
 import {UniV4Swap} from "./UniV4Swap.sol";
 import {IDcaVault} from "./interfaces/IDcaVault.sol";
@@ -22,9 +23,6 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
     /// ERC-7201 storage
     struct DcaVaultStorage {
-        // Roles/config
-        address owner;
-        address callbackSender; // authorized CronReactive sender
         IERC20 usdc;
         // Round-robin bounded processing
         address[] users;
@@ -38,15 +36,18 @@ contract DcaVault is UniV4Swap, IDcaVault {
         mapping(address => IDcaVault.DcaPlan) plans;
     }
 
-    constructor(address _router, address _permit2, address _usdc, address _callbackSender)
-        UniV4Swap(_router, _permit2)
-    {
+    constructor(address _router, address _permit2, address _usdc) UniV4Swap(_router, _permit2) {
         DcaVaultStorage storage $ = _getDcaVaultStorage();
-        $.owner = msg.sender;
-        if (_callbackSender == address(0)) revert IDcaVault.NotCallbackSender();
-        $.callbackSender = _callbackSender;
         if (_usdc == address(0)) revert IDcaVault.InvalidSwapRoute();
         $.usdc = IERC20(_usdc);
+        $.zeroForOne = false; // default direction USDC -> Native
+        $.swapPool = PoolKey({
+            currency0: Currency.wrap(address(0)),
+            currency1: Currency.wrap(_usdc), // native
+            fee: 3000, // default fee tier 0.3%
+            tickSpacing: 60,
+            hooks: IHooks(address(0))
+        });
     }
 
     // ---------- Public getters to preserve interface ----------

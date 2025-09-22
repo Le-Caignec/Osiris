@@ -24,8 +24,6 @@ interface IDcaVault {
     event CallbackProcessed(uint256 usersProcessed, uint256 totalInUsdc, uint256 totalOutNative);
 
     // Errors
-    error NotOwner();
-    error NotCallbackSender();
     error AmountZero();
     error InsufficientUSDC();
     error InvalidSwapRoute();
