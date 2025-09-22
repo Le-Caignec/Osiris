@@ -90,8 +90,7 @@ contract DcaVault is UniV4Swap, IDcaVault {
     /// @notice Create or update your DCA plan.
     /// @param freq execution frequency (Daily, Weekly, Monthly).
     /// @param amountPerPeriod USDC amount to DCA each period.
-    /// @param active whether the plan is active.
-    function setPlan(IDcaVault.Frequency freq, uint256 amountPerPeriod, bool active) external {
+    function setPlan(IDcaVault.Frequency freq, uint256 amountPerPeriod) external {
         if (amountPerPeriod == 0) revert IDcaVault.AmountZero();
         if (amountPerPeriod > type(uint128).max) revert IDcaVault.AmountTooLarge(); // bound cast
         DcaVaultStorage storage $ = _getDcaVaultStorage();
@@ -100,44 +99,33 @@ contract DcaVault is UniV4Swap, IDcaVault {
         // casting to 'uint128' is safe because we bounded amountPerPeriod above
         // forge-lint: disable-next-line(unsafe-typecast)
         selectedUserPlan.amountPerPeriod = uint128(amountPerPeriod);
-        selectedUserPlan.active = active;
-        if (selectedUserPlan.nextExecutionTimestamp == 0 || active) {
+        if (selectedUserPlan.nextExecutionTimestamp == 0) {
             selectedUserPlan.nextExecutionTimestamp = DcaPlanLib.nextExecutionAfter(block.timestamp, freq);
         }
         DcaPlanLib.ensureUserListed($.isUserListed, $.users, msg.sender);
-        emit PlanUpdated(msg.sender, freq, amountPerPeriod, active, selectedUserPlan.nextExecutionTimestamp);
+        emit PlanUpdated(msg.sender, freq, amountPerPeriod, selectedUserPlan.nextExecutionTimestamp);
     }
 
     /// @notice Pause your DCA plan (keeps schedule and balances).
     function pausePlan() external {
         DcaVaultStorage storage $ = _getDcaVaultStorage();
         IDcaVault.DcaPlan storage selectedUserPlan = $.plans[msg.sender];
-        selectedUserPlan.active = false;
-        emit PlanUpdated(
-            msg.sender,
-            selectedUserPlan.freq,
-            selectedUserPlan.amountPerPeriod,
-            false,
-            selectedUserPlan.nextExecutionTimestamp
-        );
+        // Mark inactive by zeroing the next execution timestamp
+        selectedUserPlan.nextExecutionTimestamp = 0;
+        emit PlanUpdated(msg.sender, selectedUserPlan.freq, selectedUserPlan.amountPerPeriod, 0);
     }
 
-    /// @notice Resume your DCA plan. If overdue, schedules the next period from now.
+    /// @notice Resume your DCA plan. If overdue or inactive, schedules the next period from now.
     function resumePlan() external {
         DcaVaultStorage storage $ = _getDcaVaultStorage();
         IDcaVault.DcaPlan storage selectedUserPlan = $.plans[msg.sender];
-        selectedUserPlan.active = true;
-        if (selectedUserPlan.nextExecutionTimestamp < block.timestamp) {
+        if (selectedUserPlan.nextExecutionTimestamp == 0 || selectedUserPlan.nextExecutionTimestamp < block.timestamp) {
             selectedUserPlan.nextExecutionTimestamp =
                 DcaPlanLib.nextExecutionAfter(block.timestamp, selectedUserPlan.freq);
         }
         DcaPlanLib.ensureUserListed($.isUserListed, $.users, msg.sender);
         emit PlanUpdated(
-            msg.sender,
-            selectedUserPlan.freq,
-            selectedUserPlan.amountPerPeriod,
-            true,
-            selectedUserPlan.nextExecutionTimestamp
+            msg.sender, selectedUserPlan.freq, selectedUserPlan.amountPerPeriod, selectedUserPlan.nextExecutionTimestamp
         );
     }
 
@@ -161,10 +149,7 @@ contract DcaVault is UniV4Swap, IDcaVault {
             address selectedUser = $.users[i];
             IDcaVault.DcaPlan storage selectedUserPlan = $.plans[selectedUser];
 
-            if (
-                selectedUserPlan.active && selectedUserPlan.nextExecutionTimestamp != 0
-                    && selectedUserPlan.nextExecutionTimestamp <= nowTs
-            ) {
+            if (selectedUserPlan.nextExecutionTimestamp != 0 && selectedUserPlan.nextExecutionTimestamp <= nowTs) {
                 uint256 amt = uint256(selectedUserPlan.amountPerPeriod);
                 if (amt > 0 && $.usdcBalance[selectedUser] >= amt) {
                     eligibleUsers[eligibleCount] = selectedUser;

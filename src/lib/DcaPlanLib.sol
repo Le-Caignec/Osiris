@@ -11,22 +11,25 @@ library DcaPlanLib {
     }
 
     function nextExecutionAfter(uint256 fromTs, IDcaVault.Frequency f) internal pure returns (uint64) {
-        // casting to 'uint64' is safe because block timestamps and periods fit within 2^64
-        // forge-lint: disable-next-line(unsafe-typecast)
         return uint64(fromTs + dcaPeriod(f));
     }
 
     // Updates the plan's nextExecutionTimestamp in-place and returns the new value
-    function catchUpNextExecution(IDcaVault.DcaPlan storage plan, uint256 nowTs) internal returns (uint64) {
+    function catchUpNextExecution(IDcaVault.DcaPlan storage plan, uint256 nowTs) internal returns (uint256) {
         uint64 p = dcaPeriod(plan.freq);
-        uint64 next = plan.nextExecutionTimestamp == 0 ? uint64(nowTs) + p : plan.nextExecutionTimestamp;
-        if (next > nowTs) {
-            plan.nextExecutionTimestamp = next;
-            return next;
+        uint256 current = plan.nextExecutionTimestamp;
+        uint256 newNext;
+
+        if (current > nowTs) {
+            // Already in the future => keep
+            newNext = current;
+        } else {
+            // In the past => roll forward just beyond now, preserving alignment
+            uint256 delta = nowTs - current;
+            uint256 missed = (delta / p) + 1;
+            newNext = current + uint64(missed) * p;
         }
-        uint256 delta = nowTs - next;
-        uint256 missed = (delta / p) + 1;
-        uint64 newNext = next + uint64(missed) * p;
+
         plan.nextExecutionTimestamp = newNext;
         return newNext;
     }

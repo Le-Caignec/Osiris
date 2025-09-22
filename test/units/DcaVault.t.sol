@@ -24,13 +24,8 @@ contract DcaVault_Units is Test {
     event DepositedUSDC(address indexed user, uint256 amount);
     event WithdrawnUSDC(address indexed user, uint256 amount);
     event ClaimedNative(address indexed user, uint256 amount);
-    event PlanUpdated(
-        address indexed user,
-        IDcaVault.Frequency freq,
-        uint256 amountPerPeriod,
-        bool active,
-        uint64 nextExecutionTimestamp
-    );
+    event PlanUpdated( // changed from uint64 to uint256 to match contract
+    address indexed user, IDcaVault.Frequency freq, uint256 amountPerPeriod, uint256 nextExecutionTimestamp);
     event CallbackProcessed(uint256 eligibleCount, uint256 totalUsdcIn, uint256 nativeOut);
 
     function setUp() public {
@@ -117,29 +112,29 @@ contract DcaVault_Units is Test {
     function test_setPlan_emitsAndActivates() public {
         vm.prank(alice);
         vm.expectEmit(true, false, false, false);
-        emit PlanUpdated(alice, IDcaVault.Frequency.Daily, 10e6, true, 0);
-        vault.setPlan(IDcaVault.Frequency.Daily, 10e6, true);
+        emit PlanUpdated(alice, IDcaVault.Frequency.Daily, 10e6, 0);
+        vault.setPlan(IDcaVault.Frequency.Daily, 10e6);
     }
 
     function test_setPlan_reverts_onZeroAmount() public {
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(IDcaVault.AmountZero.selector));
-        vault.setPlan(IDcaVault.Frequency.Daily, 0, true);
+        vault.setPlan(IDcaVault.Frequency.Daily, 0);
     }
 
     function test_pause_and_resume_emitUpdates() public {
         vm.prank(alice);
-        vault.setPlan(IDcaVault.Frequency.Weekly, 5e6, true);
+        vault.setPlan(IDcaVault.Frequency.Weekly, 5e6);
 
         vm.prank(alice);
         vm.expectEmit(true, false, false, false);
-        emit PlanUpdated(alice, IDcaVault.Frequency.Weekly, 5e6, false, 0);
+        emit PlanUpdated(alice, IDcaVault.Frequency.Weekly, 5e6, 0);
         vault.pausePlan();
 
         vm.warp(block.timestamp + 15 days);
         vm.prank(alice);
         vm.expectEmit(true, false, false, false);
-        emit PlanUpdated(alice, IDcaVault.Frequency.Weekly, 5e6, true, 0);
+        emit PlanUpdated(alice, IDcaVault.Frequency.Weekly, 5e6, 0);
         vault.resumePlan();
     }
 

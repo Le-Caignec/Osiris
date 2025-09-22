@@ -56,9 +56,14 @@ contract DcaPlanLibTest is Test {
         planS.freq = IDcaVault.Frequency.Daily;
         planS.nextExecutionTimestamp = 0;
 
-        uint64 got = planS.catchUpNextExecution(nowTs);
+        uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Daily);
+        uint256 got = planS.catchUpNextExecution(nowTs);
 
-        assertEq(got, uint64(nowTs) + 1 days, "Should set to now+period");
+        // With current==0, the new impl aligns to the next period boundary (> now, within one period)
+        assertGt(got, nowTs, "New next must be after now");
+        assertLe(got - nowTs, uint256(p), "New next must be within one period after now");
+        // And since original next was 0, it aligns to epoch boundary
+        assertEq(got % uint256(p), 0, "Alignment on periods must be preserved from 0");
         assertEq(planS.nextExecutionTimestamp, got, "Stored nextExecutionTimestamp must be updated");
     }
 
@@ -69,9 +74,9 @@ contract DcaPlanLibTest is Test {
         planS.freq = IDcaVault.Frequency.Daily;
         planS.nextExecutionTimestamp = uint64(nowTs) + (3 * p); // already in the future
 
-        uint64 got = planS.catchUpNextExecution(nowTs);
+        uint256 got = planS.catchUpNextExecution(nowTs);
 
-        assertEq(got, uint64(nowTs) + 3 * p, "Should not modify a future schedule");
+        assertEq(got, uint256(nowTs) + 3 * uint256(p), "Should not modify a future schedule");
         assertEq(planS.nextExecutionTimestamp, got);
     }
 
@@ -85,15 +90,15 @@ contract DcaPlanLibTest is Test {
         uint64 nextPast = uint64(nowTs) - (2 * p) - 1234;
         planS.nextExecutionTimestamp = nextPast;
 
-        uint64 got = planS.catchUpNextExecution(nowTs);
+        uint256 got = planS.catchUpNextExecution(nowTs);
 
         // The result must be strictly > now and within one period after 'now'
-        assertGt(got, uint64(nowTs), "New next must be after now");
-        assertLe(got - uint64(nowTs), p, "New next must be within one period after now");
+        assertGt(got, nowTs, "New next must be after now");
+        assertLe(got - nowTs, uint256(p), "New next must be within one period after now");
 
         // And it should be congruent to "nextPast modulo p"
-        uint64 diff = got - nextPast;
-        assertEq(diff % p, 0, "New next should land on a period boundary from original next");
+        uint256 diff = got - uint256(nextPast);
+        assertEq(diff % uint256(p), 0, "New next should land on a period boundary from original next");
     }
 
     function test_catchUp_exactBoundary_stillAdvancesOnePeriod() public {
@@ -105,10 +110,10 @@ contract DcaPlanLibTest is Test {
         uint64 nextPast = uint64(nowTs) - (3 * p);
         planS.nextExecutionTimestamp = nextPast;
 
-        uint64 got = planS.catchUpNextExecution(nowTs);
-        assertEq(got, nextPast + 4 * p, "Should add (delta/p)+1 periods");
-        assertGt(got, uint64(nowTs), "Must strictly surpass now");
-        assertLe(got - uint64(nowTs), p, "Should be within one period after now");
+        uint256 got = planS.catchUpNextExecution(nowTs);
+        assertEq(got, uint256(nextPast) + 4 * uint256(p), "Should add (delta/p)+1 periods");
+        assertGt(got, nowTs, "Must strictly surpass now");
+        assertLe(got - nowTs, uint256(p), "Should be within one period after now");
     }
 
     function test_catchUp_largeMiss_manyPeriods() public {
@@ -120,12 +125,12 @@ contract DcaPlanLibTest is Test {
         uint64 nextPast = uint64(nowTs) - (365 * p);
         planS.nextExecutionTimestamp = nextPast;
 
-        uint64 got = planS.catchUpNextExecution(nowTs);
+        uint256 got = planS.catchUpNextExecution(nowTs);
 
-        assertGt(got, uint64(nowTs), "Must end up after now");
-        assertLe(got - uint64(nowTs), p, "No more than one period after now");
+        assertGt(got, nowTs, "Must end up after now");
+        assertLe(got - nowTs, uint256(p), "No more than one period after now");
         // Also check alignment
-        assertEq((got - nextPast) % p, 0, "Alignment on periods must be preserved");
+        assertEq((got - uint256(nextPast)) % uint256(p), 0, "Alignment on periods must be preserved");
     }
 
     // --- ensureUserListed ---
