@@ -165,10 +165,7 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
         // Single swap USDC -> Native
         PoolKey memory key = $.swapPool; // copy storage to memory for internal call
-        bool zf1 = $.zeroForOne;
-        // casting to 'uint128' is safe because 'totalIn' was bounded above
-        // forge-lint: disable-next-line(unsafe-typecast)
-        uint256 nativeOut = swapExactInputSingle(key, zf1, uint128(totalIn), 0);
+        uint256 nativeOut = swapExactInputSingle(key, $.zeroForOne, uint128(totalIn), 0);
 
         // Distribute pro-rata and reschedule nextExecutionTimestamp with catch-up
         uint256 remainingOut = nativeOut;
