@@ -166,7 +166,8 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
         // Single swap USDC -> Native
         PoolKey memory key = $.swapPool; // copy storage to memory for internal call
-        uint256 nativeOut = swapExactInputSingle(key, $.zeroForOne, uint128(totalIn), 0);
+        // Use an external self-call so msg.sender inside swap is the vault
+        uint256 nativeOut = this.swapExactInputSingle(key, $.zeroForOne, uint128(totalIn), 0);
 
         // Distribute pro-rata and reschedule nextExecutionTimestamp with catch-up
         uint256 remainingOut = nativeOut;
