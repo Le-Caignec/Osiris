@@ -1,0 +1,33 @@
+{
+    "chains": {
+        "ethereum": {
+            "chainId": 1,
+            "rpcUrl": "https://mainnet.gateway.tenderly.co",
+            "uniswapUniversalRouter": "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af",
+            "uniswapPoolManager": "0x000000000004444c5dc75cB358380D2e3dE08A90",
+            "uniswapPermit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+            "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "callbackProxyContract":"0x1D5267C1bb7D8bA68964dDF3990601BDB7902D76",
+            "callbackContract":"0x0000000000000000000000000000000000000000"
+        },
+        "sepolia": {
+            "chainId": 11155111,
+            "rpcUrl": "https://gateway.tenderly.co/public/sepolia",
+            "uniswapUniversalRouter": "0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b",
+            "uniswapPoolManager": "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
+            "uniswapPermit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
+            "usdc": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+            "callbackProxyContract":"0xc9f36411C9897e7F959D99ffca2a0Ba7ee0D7bDA",
+            "callbackContract":"0x0000000000000000000000000000000000000000"
+        },
+        "lasna": {
+            "chainId": 5318008,
+            "rpcUrl": "https://lasna-rpc.rnk.dev/",
+            "cronTopic":"0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687",
+            "reactiveSystemContract":"0x0000000000000000000000000000000000fffFfF",
+            "reactiveContract":"0x0000000000000000000000000000000000fffFfF"
+        }
+    }
+}
