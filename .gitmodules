@@ -1,0 +1,30 @@
+[submodule "packages/smart-contract/lib/reactive-lib"]
+	path = packages/smart-contract/lib/reactive-lib
+	url = https://github.com/Reactive-Network/reactive-lib
+[submodule "packages/smart-contract/lib/forge-std"]
+	path = packages/smart-contract/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "packages/smart-contract/lib/universal-router"]
+	path = packages/smart-contract/lib/universal-router
+	url = https://github.com/uniswap/universal-router
+[submodule "packages/smart-contract/lib/v4-core"]
+	path = packages/smart-contract/lib/v4-core
+	url = https://github.com/uniswap/v4-core
+[submodule "packages/smart-contract/lib/v4-periphery"]
+	path = packages/smart-contract/lib/v4-periphery
+	url = https://github.com/uniswap/v4-periphery
+[submodule "packages/smart-contract/lib/v3-core"]
+	path = packages/smart-contract/lib/v3-core
+	url = https://github.com/uniswap/v3-core
+[submodule "packages/smart-contract/lib/v2-core"]
+	path = packages/smart-contract/lib/v2-core
+	url = https://github.com/uniswap/v2-core
+[submodule "packages/smart-contract/lib/openzeppelin-contracts"]
+	path = packages/smart-contract/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "packages/smart-contract/lib/permit2"]
+	path = packages/smart-contract/lib/permit2
+	url = https://github.com/uniswap/permit2
+[submodule "packages/smart-contract/lib/solmate"]
+	path = packages/smart-contract/lib/solmate
+	url = https://github.com/transmissions11/solmate
