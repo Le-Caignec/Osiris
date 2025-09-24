@@ -7,22 +7,23 @@ import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {Currency, CurrencyLibrary} from "@uniswap/v4-core/src/types/Currency.sol";
 import {UniV4Swap} from "./UniV4Swap.sol";
-import {IDcaVault} from "./interfaces/IDcaVault.sol";
+import {IOsiris} from "./interfaces/IOsiris.sol";
 import {IUniV4Swap} from "./interfaces/IUniV4Swap.sol";
 import {DcaPlanLib} from "./lib/DcaPlanLib.sol";
 
-/// @custom:storage-location erc7201:orion.dca.storage
-contract DcaVault is UniV4Swap, IDcaVault {
+/// @title Osiris
+/// @notice Project renamed to Osiris; legacy name removed.
+contract Osiris is UniV4Swap, IOsiris {
     using SafeERC20 for IERC20;
     using CurrencyLibrary for Currency;
 
     // ---------- ERC-7201 storage ----------
     /// @custom:storage-location bytes32(uint256(keccak256("erc7201:orion.dca.storage")) - 1) & ~bytes32(uint256(0xff))
-    bytes32 private constant DCA_VAULT_STORAGE_LOCATION =
-        0x1511ad89e97fa2d26f0cd38fdcc0283783989b1ee4d2e82ca85073f029a77700;
+    bytes32 private constant OSIRIS_STORAGE_LOCATION =
+        0x68511e06a47e02615622d3067a6e76777b4a7762af923f31d7c600643617a500;
 
     /// ERC-7201 storage
-    struct DcaVaultStorage {
+    struct OsirisStorage {
         IERC20 usdc;
         // Round-robin bounded processing
         address[] users;
@@ -33,12 +34,12 @@ contract DcaVault is UniV4Swap, IDcaVault {
         // User accounting (moved here)
         mapping(address => uint256) usdcBalance;
         mapping(address => uint256) nativeBalance;
-        mapping(address => IDcaVault.DcaPlan) plans;
+        mapping(address => IOsiris.DcaPlan) plans;
     }
 
     constructor(address _router, address _permit2, address _usdc) UniV4Swap(_router, _permit2) {
-        DcaVaultStorage storage $ = _getDcaVaultStorage();
-        if (_usdc == address(0)) revert IDcaVault.InvalidSwapRoute();
+        OsirisStorage storage $ = _getOsirisStorage();
+        if (_usdc == address(0)) revert IOsiris.InvalidSwapRoute();
         $.usdc = IERC20(_usdc);
         $.zeroForOne = false; // default direction USDC -> Native
         $.swapPool = PoolKey({
@@ -56,8 +57,8 @@ contract DcaVault is UniV4Swap, IDcaVault {
     /// This function requires prior USDC approval.
     /// @param amount amount of USDC to deposit.
     function depositUsdc(uint256 amount) external {
-        if (amount == 0) revert IDcaVault.AmountZero();
-        DcaVaultStorage storage $ = _getDcaVaultStorage();
+        if (amount == 0) revert IOsiris.AmountZero();
+        OsirisStorage storage $ = _getOsirisStorage();
         $.usdc.safeTransferFrom(msg.sender, address(this), amount);
         $.usdcBalance[msg.sender] += amount;
         emit DepositedUSDC(msg.sender, amount);
@@ -66,10 +67,10 @@ contract DcaVault is UniV4Swap, IDcaVault {
     /// @notice Withdraw USDC from your vault balance.
     /// @param amount amount of USDC to withdraw.
     function withdrawUsdc(uint256 amount) external {
-        if (amount == 0) revert IDcaVault.AmountZero();
-        DcaVaultStorage storage $ = _getDcaVaultStorage();
+        if (amount == 0) revert IOsiris.AmountZero();
+        OsirisStorage storage $ = _getOsirisStorage();
         uint256 bal = $.usdcBalance[msg.sender];
-        if (bal < amount) revert IDcaVault.InsufficientUSDC();
+        if (bal < amount) revert IOsiris.InsufficientUSDC();
         $.usdcBalance[msg.sender] = bal - amount;
         $.usdc.safeTransfer(msg.sender, amount);
         emit WithdrawnUSDC(msg.sender, amount);
@@ -78,8 +79,8 @@ contract DcaVault is UniV4Swap, IDcaVault {
     /// @notice Claim accumulated native output from executed DCA swaps.
     /// @param amount amount of native token to claim.
     function claimNative(uint256 amount) external nonReentrant {
-        if (amount == 0) revert IDcaVault.AmountZero();
-        DcaVaultStorage storage $ = _getDcaVaultStorage();
+        if (amount == 0) revert IOsiris.AmountZero();
+        OsirisStorage storage $ = _getOsirisStorage();
         uint256 bal = $.nativeBalance[msg.sender];
         require(bal >= amount, "insufficient native");
         $.nativeBalance[msg.sender] = bal - amount;
@@ -91,11 +92,11 @@ contract DcaVault is UniV4Swap, IDcaVault {
     /// @notice Create or update your DCA plan.
     /// @param freq execution frequency (Daily, Weekly, Monthly).
     /// @param amountPerPeriod USDC amount to DCA each period.
-    function setPlan(IDcaVault.Frequency freq, uint256 amountPerPeriod) external {
-        if (amountPerPeriod == 0) revert IDcaVault.AmountZero();
-        if (amountPerPeriod > type(uint128).max) revert IDcaVault.AmountTooLarge(); // bound cast
-        DcaVaultStorage storage $ = _getDcaVaultStorage();
-        IDcaVault.DcaPlan storage selectedUserPlan = $.plans[msg.sender];
+    function setPlan(IOsiris.Frequency freq, uint256 amountPerPeriod) external {
+        if (amountPerPeriod == 0) revert IOsiris.AmountZero();
+        if (amountPerPeriod > type(uint128).max) revert IOsiris.AmountTooLarge(); // bound cast
+        OsirisStorage storage $ = _getOsirisStorage();
+        IOsiris.DcaPlan storage selectedUserPlan = $.plans[msg.sender];
         selectedUserPlan.freq = freq;
         // casting to 'uint128' is safe because we bounded amountPerPeriod above
         // forge-lint: disable-next-line(unsafe-typecast)
@@ -109,8 +110,8 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
     /// @notice Pause your DCA plan (keeps schedule and balances).
     function pausePlan() external {
-        DcaVaultStorage storage $ = _getDcaVaultStorage();
-        IDcaVault.DcaPlan storage selectedUserPlan = $.plans[msg.sender];
+        OsirisStorage storage $ = _getOsirisStorage();
+        IOsiris.DcaPlan storage selectedUserPlan = $.plans[msg.sender];
         // Mark inactive by zeroing the next execution timestamp
         selectedUserPlan.nextExecutionTimestamp = 0;
         emit PlanUpdated(msg.sender, selectedUserPlan.freq, selectedUserPlan.amountPerPeriod, 0);
@@ -118,8 +119,8 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
     /// @notice Resume your DCA plan. If overdue or inactive, schedules the next period from now.
     function resumePlan() external {
-        DcaVaultStorage storage $ = _getDcaVaultStorage();
-        IDcaVault.DcaPlan storage selectedUserPlan = $.plans[msg.sender];
+        OsirisStorage storage $ = _getOsirisStorage();
+        IOsiris.DcaPlan storage selectedUserPlan = $.plans[msg.sender];
         if (selectedUserPlan.nextExecutionTimestamp == 0 || selectedUserPlan.nextExecutionTimestamp < block.timestamp) {
             selectedUserPlan.nextExecutionTimestamp =
                 DcaPlanLib.nextExecutionAfter(block.timestamp, selectedUserPlan.freq);
@@ -132,7 +133,7 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
     /// @notice CronReactive tick entrypoint. Aggregates eligible users, swaps once, and distributes output.
     function callback() external {
-        DcaVaultStorage storage $ = _getDcaVaultStorage();
+        OsirisStorage storage $ = _getOsirisStorage();
 
         uint256 nbOfUser = $.users.length;
         if (nbOfUser == 0) return;
@@ -146,7 +147,7 @@ contract DcaVault is UniV4Swap, IDcaVault {
 
         for (uint256 i = 0; i < nbOfUser; i++) {
             address selectedUser = $.users[i];
-            IDcaVault.DcaPlan storage selectedUserPlan = $.plans[selectedUser];
+            IOsiris.DcaPlan storage selectedUserPlan = $.plans[selectedUser];
 
             if (selectedUserPlan.nextExecutionTimestamp != 0 && selectedUserPlan.nextExecutionTimestamp <= nowTs) {
                 uint256 amt = uint256(selectedUserPlan.amountPerPeriod);
@@ -162,7 +163,7 @@ contract DcaVault is UniV4Swap, IDcaVault {
         if (totalIn == 0) {
             return;
         }
-        if (totalIn > type(uint128).max) revert IDcaVault.AmountTooLarge(); // bound cast
+        if (totalIn > type(uint128).max) revert IOsiris.AmountTooLarge(); // bound cast
 
         // Single swap USDC -> Native
         PoolKey memory key = $.swapPool; // copy storage to memory for internal call
@@ -192,10 +193,10 @@ contract DcaVault is UniV4Swap, IDcaVault {
         emit CallbackProcessed(eligibleCount, totalIn, nativeOut);
     }
 
-    function _getDcaVaultStorage() private pure returns (DcaVaultStorage storage $) {
+    function _getOsirisStorage() private pure returns (OsirisStorage storage $) {
         //slither-disable-start assembly
         assembly ("memory-safe") {
-            $.slot := DCA_VAULT_STORAGE_LOCATION
+            $.slot := OSIRIS_STORAGE_LOCATION
         }
         //slither-disable-end assembly
     }

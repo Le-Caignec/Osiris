@@ -2,41 +2,41 @@
 pragma solidity >=0.8.13;
 
 import {Test} from "forge-std/Test.sol";
-import {IDcaVault} from "../../src/interfaces/IDcaVault.sol";
+import {IOsiris} from "../../src/interfaces/IOsiris.sol";
 import {DcaPlanLib} from "../../src/lib/DcaPlanLib.sol";
 
 contract DcaPlanLibTest is Test {
-    using DcaPlanLib for IDcaVault.DcaPlan;
+    using DcaPlanLib for IOsiris.DcaPlan;
 
     // --- Storage harness for ensureUserListed ---
     mapping(address => bool) private isUserListed;
     address[] private users;
 
     // --- Helpers ---
-    function _mkPlan(IDcaVault.Frequency f, uint64 nextTs) internal pure returns (IDcaVault.DcaPlan memory p) {
+    function _mkPlan(IOsiris.Frequency f, uint64 nextTs) internal pure returns (IOsiris.DcaPlan memory p) {
         // Only fields used by the lib must be set (freq, nextExecutionTimestamp)
         p.freq = f;
         p.nextExecutionTimestamp = nextTs;
     }
 
     // Foundry can’t take storage pointers from memory structs, so keep a dedicated storage slot
-    IDcaVault.DcaPlan private planS;
+    IOsiris.DcaPlan private planS;
 
     // --- dcaPeriod ---
 
     function test_dcaPeriod_Daily() public pure {
-        uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Daily);
+        uint64 p = DcaPlanLib.dcaPeriod(IOsiris.Frequency.Daily);
         assertEq(p, 1 days, "Daily period should be 1 day");
     }
 
     function test_dcaPeriod_Weekly() public pure {
-        uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Weekly);
+        uint64 p = DcaPlanLib.dcaPeriod(IOsiris.Frequency.Weekly);
         assertEq(p, 7 days, "Weekly period should be 7 days");
     }
 
     function test_dcaPeriod_DefaultMonthly() public pure {
         // Any non-Daily/Weekly should map to 30 days per the lib
-        uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Monthly);
+        uint64 p = DcaPlanLib.dcaPeriod(IOsiris.Frequency.Monthly);
         assertEq(p, 30 days, "Default period should be 30 days");
     }
 
@@ -45,7 +45,7 @@ contract DcaPlanLibTest is Test {
     function test_nextExecutionAfter_AddsPeriodAndCasts() public pure {
         uint256 fromTs = 1_000;
         uint64 expectTs = uint64(fromTs + 1 days);
-        uint64 next = DcaPlanLib.nextExecutionAfter(fromTs, IDcaVault.Frequency.Daily);
+        uint64 next = DcaPlanLib.nextExecutionAfter(fromTs, IOsiris.Frequency.Daily);
         assertEq(next, expectTs);
     }
 
@@ -53,10 +53,10 @@ contract DcaPlanLibTest is Test {
 
     function test_catchUp_whenNextUnset_setsNowPlusPeriod() public {
         uint256 nowTs = 1_700_000_000; // arbitrary
-        planS.freq = IDcaVault.Frequency.Daily;
+        planS.freq = IOsiris.Frequency.Daily;
         planS.nextExecutionTimestamp = 0;
 
-        uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Daily);
+        uint64 p = DcaPlanLib.dcaPeriod(IOsiris.Frequency.Daily);
         uint256 got = planS.catchUpNextExecution(nowTs);
 
         // With current==0, the new impl aligns to the next period boundary (> now, within one period)
@@ -69,9 +69,9 @@ contract DcaPlanLibTest is Test {
 
     function test_catchUp_whenNextInFuture_keepsUnchanged() public {
         uint256 nowTs = 1_700_000_000;
-        uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Daily);
+        uint64 p = DcaPlanLib.dcaPeriod(IOsiris.Frequency.Daily);
 
-        planS.freq = IDcaVault.Frequency.Daily;
+        planS.freq = IOsiris.Frequency.Daily;
         planS.nextExecutionTimestamp = uint64(nowTs) + (3 * p); // already in the future
 
         uint256 got = planS.catchUpNextExecution(nowTs);
@@ -82,9 +82,9 @@ contract DcaPlanLibTest is Test {
 
     function test_catchUp_whenNextInPast_rollsForwardJustBeyondNow() public {
         uint256 nowTs = 1_700_000_000;
-        uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Weekly);
+        uint64 p = DcaPlanLib.dcaPeriod(IOsiris.Frequency.Weekly);
 
-        planS.freq = IDcaVault.Frequency.Weekly;
+        planS.freq = IOsiris.Frequency.Weekly;
 
         // Set a "next" two periods in the past, plus some extra so it's not aligned
         uint64 nextPast = uint64(nowTs) - (2 * p) - 1234;
@@ -103,9 +103,9 @@ contract DcaPlanLibTest is Test {
 
     function test_catchUp_exactBoundary_stillAdvancesOnePeriod() public {
         uint256 nowTs = 2_000_000_000;
-        uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Daily);
+        uint64 p = DcaPlanLib.dcaPeriod(IOsiris.Frequency.Daily);
 
-        planS.freq = IDcaVault.Frequency.Daily;
+        planS.freq = IOsiris.Frequency.Daily;
         // If next == now - k*p (i.e., exactly on boundary in the past), the lib adds +1 period
         uint64 nextPast = uint64(nowTs) - (3 * p);
         planS.nextExecutionTimestamp = nextPast;
@@ -118,9 +118,9 @@ contract DcaPlanLibTest is Test {
 
     function test_catchUp_largeMiss_manyPeriods() public {
         uint256 nowTs = 2_100_000_000;
-        uint64 p = DcaPlanLib.dcaPeriod(IDcaVault.Frequency.Daily);
+        uint64 p = DcaPlanLib.dcaPeriod(IOsiris.Frequency.Daily);
 
-        planS.freq = IDcaVault.Frequency.Daily;
+        planS.freq = IOsiris.Frequency.Daily;
         // Miss ~365 days
         uint64 nextPast = uint64(nowTs) - (365 * p);
         planS.nextExecutionTimestamp = nextPast;
