@@ -117,7 +117,7 @@ const FundsCard: React.FC = () => {
             </span>
           </div>
 
-          <div className='flex flex-col sm:flex-row gap-3'>
+          <div className='flex space-x-3'>
             <input
               type='number'
               value={usdcDepositAmount}
@@ -132,7 +132,7 @@ const FundsCard: React.FC = () => {
                 isLoading ||
                 parseFloat(usdcDepositAmount) > parseFloat(balances.userUsdc)
               }
-              className='bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px] sm:min-w-[120px]'
+              className='bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px]'
             >
               Deposit
             </button>
@@ -217,7 +217,7 @@ const FundsCard: React.FC = () => {
             </span>
           </div>
 
-          <div className='flex flex-col sm:flex-row gap-3'>
+          <div className='flex space-x-3'>
             <input
               type='number'
               value={ethWithdrawAmount}
@@ -232,7 +232,7 @@ const FundsCard: React.FC = () => {
                 isLoading ||
                 parseFloat(ethWithdrawAmount) > parseFloat(balances.userNative)
               }
-              className='bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px] sm:min-w-[120px]'
+              className='bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px]'
             >
               Claim
             </button>
