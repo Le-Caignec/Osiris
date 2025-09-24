@@ -131,12 +131,12 @@ const BalanceCard: React.FC = () => {
   ];
 
   return (
-    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 min-h-[400px] flex flex-col'>
-      <div className='flex items-center justify-between mb-6'>
+    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 min-h-[400px] flex flex-col'>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0'>
         <div className='flex items-center space-x-3'>
-          <div className='w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center'>
+          <div className='w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0'>
             <svg
-              className='w-5 h-5 text-white'
+              className='w-4 h-4 sm:w-5 sm:h-5 text-white'
               fill='none'
               stroke='currentColor'
               viewBox='0 0 24 24'
@@ -149,28 +149,34 @@ const BalanceCard: React.FC = () => {
               />
             </svg>
           </div>
-          <h3 className='text-xl font-bold text-white'>Balances</h3>
+          <h3 className='text-lg sm:text-xl font-bold text-white'>Balances</h3>
         </div>
         <div
-          className={`px-3 py-1 rounded-full bg-gradient-to-r ${getNetworkColor()} text-white text-sm font-medium`}
+          className={`px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r ${getNetworkColor()} text-white text-xs sm:text-sm font-medium self-start sm:self-auto`}
         >
           {getNetworkName()}
         </div>
       </div>
 
-      <div className='space-y-4 flex-1'>
+      <div className='space-y-3 sm:space-y-4 flex-1'>
         {balanceItems.map((item, index) => (
           <div
             key={index}
-            className='flex items-center justify-between p-3 bg-gray-700/50 rounded-xl hover:bg-gray-700/70 transition-colors duration-200'
+            className='flex items-center justify-between p-2 sm:p-3 bg-gray-700/50 rounded-xl hover:bg-gray-700/70 transition-colors duration-200'
           >
-            <div className='flex items-center space-x-3'>
-              <div className='w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center'>
+            <div className='flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1'>
+              <div className='w-6 h-6 sm:w-8 sm:h-8 bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0'>
                 {item.icon}
               </div>
-              <span className='text-gray-300 font-medium'>{item.label}</span>
+              <span className='text-gray-300 font-medium text-sm sm:text-base truncate'>
+                {item.label}
+              </span>
             </div>
-            <span className={`font-bold ${item.color}`}>{item.value}</span>
+            <span
+              className={`font-bold text-sm sm:text-base ${item.color} flex-shrink-0 ml-2`}
+            >
+              {item.value}
+            </span>
           </div>
         ))}
       </div>
