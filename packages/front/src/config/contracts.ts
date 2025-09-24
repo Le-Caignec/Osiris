@@ -15,22 +15,6 @@ export const CONTRACT_ADDRESSES = {
   },
 };
 
-// Network configurations
-export const NETWORKS = {
-  ethereum: {
-    chainId: 1,
-    name: 'Ethereum',
-    rpcUrl: 'https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY', // TODO: Replace with your Alchemy API key
-    blockExplorer: 'https://etherscan.io',
-  },
-  sepolia: {
-    chainId: 11155111,
-    name: 'Sepolia',
-    rpcUrl: 'https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY', // TODO: Replace with your Alchemy API key
-    blockExplorer: 'https://sepolia.etherscan.io',
-  },
-};
-
 // Contract ABI - Osiris contract interface
 export const OSIRIS_ABI = [
   // Events
@@ -90,11 +74,4 @@ export const FREQUENCY_LABELS = {
   [Frequency.Daily]: 'Daily',
   [Frequency.Weekly]: 'Weekly',
   [Frequency.Monthly]: 'Monthly',
-};
-
-// Frequency intervals in seconds
-export const FREQUENCY_INTERVALS = {
-  [Frequency.Daily]: 24 * 60 * 60, // 1 day
-  [Frequency.Weekly]: 7 * 24 * 60 * 60, // 1 week
-  [Frequency.Monthly]: 30 * 24 * 60 * 60, // 30 days
 };

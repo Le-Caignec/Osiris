@@ -65,27 +65,6 @@ Dans `src/config/contracts.ts`, remplacez `YOUR_PROJECT_ID` par votre Project ID
 export const WALLETCONNECT_PROJECT_ID = 'your_project_id_here';
 ```
 
-### 3. URLs RPC
-
-Dans `src/config/contracts.ts`, configurez vos URLs RPC :
-
-```typescript
-export const NETWORKS = {
-  ethereum: {
-    chainId: 1,
-    name: 'Ethereum',
-    rpcUrl: 'https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY',
-    blockExplorer: 'https://etherscan.io',
-  },
-  sepolia: {
-    chainId: 11155111,
-    name: 'Sepolia',
-    rpcUrl: 'https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY',
-    blockExplorer: 'https://sepolia.etherscan.io',
-  },
-};
-```
-
 ## Démarrage
 
 ```bash
@@ -99,29 +78,9 @@ L'application sera disponible sur `http://localhost:3000`
 ### Scripts Principaux
 
 - `npm start` - Démarre le serveur de développement
-- `npm run dev` - Alias pour `npm start`
 - `npm run build` - Compile l'application pour la production
-
-## Structure du Projet
-
-```
-src/
-├── components/          # Composants React
-│   ├── Header.tsx       # En-tête avec navigation
-│   ├── Hero.tsx         # Section principale
-│   ├── DcaPlanForm.tsx  # Formulaire de création DCA
-│   ├── Features.tsx     # Section fonctionnalités
-│   ├── Roadmap.tsx      # Section roadmap
-│   ├── Dashboard.tsx    # Tableau de bord principal
-│   ├── BalanceCard.tsx  # Affichage des balances
-│   ├── DcaPlanCard.tsx  # Gestion du plan DCA
-│   └── WithdrawCard.tsx # Retraits de fonds
-├── providers/           # Contextes React
-│   └── WalletProvider.tsx # Gestion wallet et contrats
-├── config/             # Configuration
-│   └── contracts.ts    # ABI et adresses des contrats
-└── App.tsx             # Composant principal
-```
+- `npm test` - Lance les tests
+- `npm run format` - Formate le code avec Prettier
 
 ## Utilisation
 
@@ -155,9 +114,10 @@ src/
 - Pausez ou reprenez le plan
 - Voir la date de la prochaine exécution
 
-### 5. Retraits
+### 5. Gestion des Fonds
 
-- Sur le Dashboard, section "Withdraw Funds"
+- Sur le Dashboard, section "Fund Management"
+- Déposez des USDC dans le vault
 - Retirez vos USDC du vault
 - Claim vos ETH accumulés par le DCA
 
@@ -166,6 +126,7 @@ src/
 - **React 18** : Framework frontend
 - **TypeScript** : Typage statique
 - **Tailwind CSS** : Styling
+- **React Router** : Routage et navigation
 - **Wagmi** : Hooks Ethereum
 - **RainbowKit** : Connexion wallet
 - **Viem** : Bibliothèque Ethereum

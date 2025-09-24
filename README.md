@@ -1,6 +1,6 @@
-# ReactiveDCA
+# OSIRIS
 
-ReactiveDCA is a pooled smart contract executing Dollar-Cost Averaging (DCA) from USDC to the native token via Uniswap v4.  
+OSIRIS is a pooled smart contract executing Dollar-Cost Averaging (DCA) from USDC to the native token via Uniswap v4.  
 Users deposit USDC, configure a plan (frequency + amount per period), and CronReactive (Reactive Network) periodically triggers the vault callback on Ethereum.
 
 ---
@@ -10,7 +10,7 @@ Users deposit USDC, configure a plan (frequency + amount per period), and CronRe
 This is a monorepo containing multiple packages:
 
 ```
-ReactiveDCA/
+OSIRIS/
 ├── packages/
 │   ├── smart-contract/    # Solidity smart contracts (Foundry project)
 │   └── front/            # Frontend application
