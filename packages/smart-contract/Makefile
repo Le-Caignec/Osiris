@@ -35,9 +35,9 @@ deploy-callback:
 		--verifier-api-key $(ETHERSCAN_API_KEY) \
 		-vvv
 
-deploy-swap:
+deploy-osiris:
 	# Deploy to Sepolia (Swap Contracts)
-	forge script script/Deploy.s.sol:DeploySwap \
+	forge script script/Deploy.s.sol:DeployOsiris \
 		--rpc-url $(SEPOLIA_RPC) \
 		--account $(ACCOUNT) \
 		--broadcast \

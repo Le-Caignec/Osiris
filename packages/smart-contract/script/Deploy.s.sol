@@ -4,7 +4,7 @@ pragma solidity ^0.8.22;
 import {Script, console} from "forge-std/Script.sol";
 import {Callback} from "../src/Callback.sol";
 import {CronReactive} from "../src/CronReactive.sol";
-import {UniV4Swap} from "../src/UniV4Swap.sol";
+import {Osiris} from "../src/Osiris.sol";
 import {ConfigLib} from "./lib/configLib.sol";
 
 contract DeployCallback is Script {
@@ -21,18 +21,19 @@ contract DeployCallback is Script {
     }
 }
 
-contract DeploySwap is Script {
+contract DeployOsiris is Script {
     function run() external {
         string memory chain = vm.envString("CHAIN");
         ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
 
         address universalRouter = config.uniswapUniversalRouter;
         address permit2 = config.uniswapPermit2;
+        address usdc = config.usdc;
 
         vm.startBroadcast();
-        // Deploy the UniV4Swap contract on Sepolia
-        address uniV4SwapContract = address(new UniV4Swap(universalRouter, permit2));
-        console.log("UniV4Swap Contract Address (Sepolia):", uniV4SwapContract);
+        // Deploy the Osiris contract on Sepolia/Ethereum
+        Osiris osirisContract = new Osiris{value: 0.00001 ether}(universalRouter, permit2, usdc);
+        console.log("Osiris Contract Address (Sepolia):", address(osirisContract));
         vm.stopBroadcast();
     }
 }
