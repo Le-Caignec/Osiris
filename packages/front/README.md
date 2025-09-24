@@ -57,12 +57,19 @@ export const CONTRACT_ADDRESSES = {
 };
 ```
 
-### 2. Project ID WalletConnect
+### 2. Variables d'environnement
 
-Dans `src/config/contracts.ts`, remplacez `YOUR_PROJECT_ID` par votre Project ID WalletConnect :
+Copiez le fichier `.env.template` vers `.env` et configurez vos valeurs :
 
-```typescript
-export const WALLETCONNECT_PROJECT_ID = 'your_project_id_here';
+```bash
+cp .env.template .env
+```
+
+Puis modifiez le fichier `.env` avec vos vraies valeurs :
+
+```bash
+# WalletConnect Configuration
+REACT_APP_WALLET_CONNECT_PROJECT_ID=your_walletconnect_project_id_here
 ```
 
 ## Démarrage

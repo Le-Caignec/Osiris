@@ -64,31 +64,37 @@ foundryup
 ### Getting Started
 
 1. Navigate to the smart contract package:
+
 ```bash
 cd packages/smart-contract
 ```
 
 2. Install dependencies:
+
 ```bash
 forge install
 ```
 
 3. Build:
+
 ```bash
 forge build
 ```
 
 4. Run tests:
+
 ```bash
 forge test -vv
 ```
 
 5. Run unit tests with gas reporting:
+
 ```bash
 make test-unit
 ```
 
 6. Coverage:
+
 ```bash
 forge coverage
 ```

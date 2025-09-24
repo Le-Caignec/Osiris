@@ -1,6 +1,3 @@
-// WalletConnect Project ID
-export const WALLETCONNECT_PROJECT_ID = 'YOUR_PROJECT_ID'; // TODO: Replace with your WalletConnect Project ID
-
 // Contract addresses for different networks
 export const CONTRACT_ADDRESSES = {
   // Ethereum Mainnet

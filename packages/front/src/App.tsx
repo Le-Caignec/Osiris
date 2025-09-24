@@ -16,7 +16,6 @@ import Layout from './components/Layout';
 import Home from './components/Home';
 import Dashboard from './components/Dashboard';
 import WalletProvider from './providers/WalletProvider';
-import { WALLETCONNECT_PROJECT_ID } from './config/contracts';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [mainnet, sepolia],
@@ -25,7 +24,7 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 
 const { connectors } = getDefaultWallets({
   appName: 'OSIRIS',
-  projectId: WALLETCONNECT_PROJECT_ID,
+  projectId: process.env.REACT_APP_WALLET_CONNECT_PROJECT_ID!,
   chains,
 });
 
