@@ -1,7 +1,25 @@
-# Osiris
+# ReactiveDCA
 
-Osiris is a pooled smart contract executing Dollar-Cost Averaging (DCA) from USDC to the native token via Uniswap v4.  
+ReactiveDCA is a pooled smart contract executing Dollar-Cost Averaging (DCA) from USDC to the native token via Uniswap v4.  
 Users deposit USDC, configure a plan (frequency + amount per period), and CronReactive (Reactive Network) periodically triggers the vault callback on Ethereum.
+
+---
+
+## Project Structure
+
+This is a monorepo containing multiple packages:
+
+```
+ReactiveDCA/
+├── packages/
+│   ├── smart-contract/    # Solidity smart contracts (Foundry project)
+│   └── front/            # Frontend application
+├── .gitignore            # Git ignore rules
+├── .gitmodules          # Git submodules configuration
+└── README.md            # This file
+```
+
+The smart contract package contains the core Osiris DCA logic and related contracts.
 
 ---
 
@@ -34,50 +52,58 @@ Users deposit USDC, configure a plan (frequency + amount per period), and CronRe
 
 ---
 
-## Developer Commands (Foundry)
+## Smart Contract Development (Foundry)
+
+### Prerequisites
 
 ```bash
-curl -L <https://foundry.paradigm.xyz> | bash
+curl -L https://foundry.paradigm.xyz | bash
 foundryup
 ```
 
-- Install dependencies:
+### Getting Started
 
+1. Navigate to the smart contract package:
+```bash
+cd packages/smart-contract
+```
+
+2. Install dependencies:
 ```bash
 forge install
 ```
 
-- Build:
-
+3. Build:
 ```bash
 forge build
 ```
 
-- Run tests (unit + fuzz):
-
+4. Run tests:
 ```bash
 forge test -vv
 ```
 
-- Coverage:
+5. Run unit tests with gas reporting:
+```bash
+make test-unit
+```
 
+6. Coverage:
 ```bash
 forge coverage
 ```
 
-- Gas report:
+### Available Make Commands
 
-```bash
-forge test --gas-report
-```
+From the `packages/smart-contract` directory:
 
-If a Makefile is provided:
-
-- Run unit tests:
-
-```bash
-make test-unit
-```
+- `make test-unit`: Run unit tests with gas reporting
+- `make fork-sepolia`: Start local fork of Sepolia testnet
+- `make deploy-reactive`: Deploy CronReactive contract to Lasna
+- `make deploy-callback`: Deploy Callback contracts to Sepolia
+- `make deploy-swap`: Deploy Swap contracts to Sepolia
+- `make pause-cron-reactive`: Pause CronReactive contract
+- `make unpause-cron-reactive`: Unpause CronReactive contract
 
 Useful variables (e.g., in scripts): addresses for Uniswap v4 Router, Permit2, USDC per network.
 
@@ -132,11 +158,4 @@ sequenceDiagram
 
     U->>V: claimNative(amount)
     V-->>U: native transfer
-```
-
-    end
-
-    U->>V: claimNative(amount)
-    V-->>U: transfer Native
-
 ```
