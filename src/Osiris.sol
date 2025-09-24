@@ -35,6 +35,7 @@ contract Osiris is UniV4Swap, IOsiris {
         mapping(address => uint256) usdcBalance;
         mapping(address => uint256) nativeBalance;
         mapping(address => IOsiris.DcaPlan) plans;
+        uint256 totalUsdc; // aggregate total of user USDC balances
     }
 
     constructor(address _router, address _permit2, address _usdc) UniV4Swap(_router, _permit2) {
@@ -61,6 +62,7 @@ contract Osiris is UniV4Swap, IOsiris {
         OsirisStorage storage $ = _getOsirisStorage();
         $.usdc.safeTransferFrom(msg.sender, address(this), amount);
         $.usdcBalance[msg.sender] += amount;
+        $.totalUsdc += amount;
         emit DepositedUSDC(msg.sender, amount);
     }
 
@@ -72,6 +74,7 @@ contract Osiris is UniV4Swap, IOsiris {
         uint256 bal = $.usdcBalance[msg.sender];
         if (bal < amount) revert IOsiris.InsufficientUSDC();
         $.usdcBalance[msg.sender] = bal - amount;
+        $.totalUsdc -= amount;
         $.usdc.safeTransfer(msg.sender, amount);
         emit WithdrawnUSDC(msg.sender, amount);
     }
@@ -165,6 +168,9 @@ contract Osiris is UniV4Swap, IOsiris {
         }
         if (totalIn > type(uint128).max) revert IOsiris.AmountTooLarge(); // bound cast
 
+        // Décrémenter le total global une seule fois pour les montants exécutés
+        $.totalUsdc -= totalIn;
+
         // Single swap USDC -> Native
         PoolKey memory key = $.swapPool; // copy storage to memory for internal call
         // Use an external self-call so msg.sender inside swap is the vault
@@ -191,6 +197,19 @@ contract Osiris is UniV4Swap, IOsiris {
         }
 
         emit CallbackProcessed(eligibleCount, totalIn, nativeOut);
+    }
+
+    // ---------- Getters (IOsiris) ----------
+    function getTotalUsdc() external view returns (uint256) {
+        return _getOsirisStorage().totalUsdc;
+    }
+
+    function getUserUsdc(address user) external view returns (uint256) {
+        return _getOsirisStorage().usdcBalance[user];
+    }
+
+    function getUserNative(address user) external view returns (uint256) {
+        return _getOsirisStorage().nativeBalance[user];
     }
 
     function _getOsirisStorage() private pure returns (OsirisStorage storage $) {

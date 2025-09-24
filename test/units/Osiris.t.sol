@@ -260,4 +260,65 @@ contract OsirisTest is Test {
             "Vault USDC reduced by Bob's withdrawal"
         );
     }
+
+    // -----------------------------
+    // Getter tests
+    // -----------------------------
+    function test_getters_default_zero() public {
+        assertEq(vault.getTotalUsdc(), 0, "total should start at 0");
+        assertEq(vault.getUserUsdc(alice), 0, "alice usdc should be 0");
+        assertEq(vault.getUserNative(alice), 0, "alice native should be 0");
+    }
+
+    function test_getUserUsdc_and_getTotalUsdc_afterDeposits() public {
+        deal(usdcAddress, alice, 150e6);
+        deal(usdcAddress, bob, 250e6);
+
+        vm.startPrank(alice);
+        usdc.approve(address(vault), type(uint256).max);
+        vault.depositUsdc(150e6);
+        vm.stopPrank();
+
+        vm.startPrank(bob);
+        usdc.approve(address(vault), type(uint256).max);
+        vault.depositUsdc(250e6);
+        vm.stopPrank();
+
+        assertEq(vault.getUserUsdc(alice), 150e6, "alice usdc mismatch");
+        assertEq(vault.getUserUsdc(bob), 250e6, "bob usdc mismatch");
+        assertEq(vault.getTotalUsdc(), 400e6, "total usdc mismatch");
+    }
+
+    function test_getUserNative_afterCallbackDistribution() public {
+        // setup mock output
+        routerMock.setMockOut(5 ether);
+        vm.deal(address(vault), 5 ether);
+
+        // Alice 40, Bob 60 -> total 100 units => pro‑rata 40% / 60%
+        deal(usdcAddress, alice, 80e6);
+        deal(usdcAddress, bob, 120e6);
+
+        vm.startPrank(alice);
+        usdc.approve(address(vault), type(uint256).max);
+        vault.depositUsdc(80e6);
+        vault.setPlan(IOsiris.Frequency.Daily, 40e6);
+        vm.stopPrank();
+
+        vm.startPrank(bob);
+        usdc.approve(address(vault), type(uint256).max);
+        vault.depositUsdc(120e6);
+        vault.setPlan(IOsiris.Frequency.Daily, 60e6);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + 2 days);
+        vault.callback();
+
+        uint256 aliceExpected = (5 ether * 40e6) / 100e6;
+        uint256 bobExpected = 5 ether - aliceExpected;
+
+        assertEq(vault.getUserNative(alice), aliceExpected, "alice native mismatch");
+        assertEq(vault.getUserNative(bob), bobExpected, "bob native mismatch");
+        // Total USDC should have decreased by executed amounts (40e6 + 60e6)
+        assertEq(vault.getTotalUsdc(), (80e6 + 120e6) - 100e6, "total usdc after callback mismatch");
+    }
 }

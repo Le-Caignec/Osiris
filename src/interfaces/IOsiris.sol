@@ -41,4 +41,9 @@ interface IOsiris {
 
     // CronReactive tick
     function callback() external;
+
+    // View getters ajoutés
+    function getTotalUsdc() external view returns (uint256);
+    function getUserUsdc(address user) external view returns (uint256);
+    function getUserNative(address user) external view returns (uint256);
 }
