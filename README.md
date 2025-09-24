@@ -104,14 +104,13 @@ forge coverage
 From the `packages/smart-contract` directory:
 
 - `make test-unit`: Run unit tests with gas reporting
-- `make fork-sepolia`: Start local fork of Sepolia testnet
+- `make fork-sepolia`: Start local fork
 - `make deploy-reactive`: Deploy CronReactive contract to Lasna
-- `make deploy-callback`: Deploy Callback contracts to Sepolia
-- `make deploy-swap`: Deploy Swap contracts to Sepolia
+- `make deploy-osiris`: Deploy Osiris contracts
 - `make pause-cron-reactive`: Pause CronReactive contract
 - `make unpause-cron-reactive`: Unpause CronReactive contract
 
-Useful variables (e.g., in scripts): addresses for Uniswap v4 Router, Permit2, USDC per network.
+All useful addresses are stored in `config/config.json` and are automatically read by the scripts.
 
 ---
 

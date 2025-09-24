@@ -38,7 +38,7 @@ contract Osiris is UniV4Swap, IOsiris {
         uint256 totalUsdc; // aggregate total of user USDC balances
     }
 
-    constructor(address _router, address _permit2, address _usdc) UniV4Swap(_router, _permit2) {
+    constructor(address _router, address _permit2, address _usdc) payable UniV4Swap(_router, _permit2) {
         OsirisStorage storage $ = _getOsirisStorage();
         if (_usdc == address(0)) revert IOsiris.InvalidSwapRoute();
         $.usdc = IERC20(_usdc);

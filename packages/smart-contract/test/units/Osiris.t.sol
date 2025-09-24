@@ -264,7 +264,7 @@ contract OsirisTest is Test {
     // -----------------------------
     // Getter tests
     // -----------------------------
-    function test_getters_default_zero() public {
+    function test_getters_default_zero() public view {
         assertEq(vault.getTotalUsdc(), 0, "total should start at 0");
         assertEq(vault.getUserUsdc(alice), 0, "alice usdc should be 0");
         assertEq(vault.getUserNative(alice), 0, "alice native should be 0");
