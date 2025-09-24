@@ -212,6 +212,10 @@ contract Osiris is UniV4Swap, IOsiris {
         return _getOsirisStorage().nativeBalance[user];
     }
 
+    function getUserPlan(address user) external view returns (IOsiris.DcaPlan memory) {
+        return _getOsirisStorage().plans[user];
+    }
+
     function _getOsirisStorage() private pure returns (OsirisStorage storage $) {
         //slither-disable-start assembly
         assembly ("memory-safe") {

@@ -321,4 +321,43 @@ contract OsirisTest is Test {
         // Total USDC should have decreased by executed amounts (40e6 + 60e6)
         assertEq(vault.getTotalUsdc(), (80e6 + 120e6) - 100e6, "total usdc after callback mismatch");
     }
+
+    // -----------------------------
+    // getUserPlan test
+    // -----------------------------
+    function test_getUserPlan() public {
+        // Test default empty plan
+        IOsiris.DcaPlan memory emptyPlan = vault.getUserPlan(alice);
+        assertEq(uint8(emptyPlan.freq), 0, "default frequency should be Daily (0)");
+        assertEq(emptyPlan.amountPerPeriod, 0, "default amount should be 0");
+        assertEq(emptyPlan.nextExecutionTimestamp, 0, "default timestamp should be 0");
+
+        // Test after setting a plan
+        vm.prank(alice);
+        vault.setPlan(IOsiris.Frequency.Weekly, 25e6);
+
+        IOsiris.DcaPlan memory activePlan = vault.getUserPlan(alice);
+        assertEq(uint8(activePlan.freq), uint8(IOsiris.Frequency.Weekly), "frequency should be Weekly (1)");
+        assertEq(activePlan.amountPerPeriod, 25e6, "amount should be 25e6");
+        assertGt(activePlan.nextExecutionTimestamp, block.timestamp, "next execution should be in future");
+
+        // Test after pausing plan
+        vm.prank(alice);
+        vault.pausePlan();
+
+        IOsiris.DcaPlan memory pausedPlan = vault.getUserPlan(alice);
+        assertEq(uint8(pausedPlan.freq), uint8(IOsiris.Frequency.Weekly), "frequency should remain Weekly");
+        assertEq(pausedPlan.amountPerPeriod, 25e6, "amount should remain 25e6");
+        assertEq(pausedPlan.nextExecutionTimestamp, 0, "timestamp should be 0 (inactive)");
+
+        // Test after resuming plan
+        vm.warp(block.timestamp + 5 days);
+        vm.prank(alice);
+        vault.resumePlan();
+
+        IOsiris.DcaPlan memory resumedPlan = vault.getUserPlan(alice);
+        assertEq(uint8(resumedPlan.freq), uint8(IOsiris.Frequency.Weekly), "frequency should remain Weekly");
+        assertEq(resumedPlan.amountPerPeriod, 25e6, "amount should remain 25e6");
+        assertGt(resumedPlan.nextExecutionTimestamp, block.timestamp, "next execution should be scheduled");
+    }
 }

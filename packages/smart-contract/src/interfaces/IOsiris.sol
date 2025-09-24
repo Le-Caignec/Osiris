@@ -46,4 +46,5 @@ interface IOsiris {
     function getTotalUsdc() external view returns (uint256);
     function getUserUsdc(address user) external view returns (uint256);
     function getUserNative(address user) external view returns (uint256);
+    function getUserPlan(address user) external view returns (DcaPlan memory);
 }
