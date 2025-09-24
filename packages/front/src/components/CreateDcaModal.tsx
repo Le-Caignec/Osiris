@@ -132,7 +132,7 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           <p className='text-gray-400 text-sm text-center'>
-            100% on-chain logs, cancellable anytime
+            100% on-chain - fully decentralized
           </p>
         </div>
       </div>
