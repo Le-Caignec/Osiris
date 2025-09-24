@@ -41,6 +41,12 @@
       "rev": "e3589b192d0be27e100cd0daaf6c97204fdb1899"
     }
   },
+  "lib/v3-periphery": {
+    "tag": {
+      "name": "v1.3.0",
+      "rev": "80f26c86c57b8a5e4b913f42844d4c8bd274d058"
+    }
+  },
   "lib/v4-core": {
     "tag": {
       "name": "v4.0.0",
@@ -48,6 +54,36 @@
     }
   },
   "lib/v4-periphery": {
+    "rev": "60cd93803ac2b7fa65fd6cd351fd5fd4cc8c9db5"
+  },
+  "packages/smart-contract/lib/forge-std": {
+    "rev": "8bbcf6e3f8f62f419e5429a0bd89331c85c37824"
+  },
+  "packages/smart-contract/lib/openzeppelin-contracts": {
+    "rev": "c64a1edb67b6e3f4a15cca8909c9482ad33a02b0"
+  },
+  "packages/smart-contract/lib/permit2": {
+    "rev": "cc56ad0f3439c502c246fc5cfcc3db92bb8b7219"
+  },
+  "packages/smart-contract/lib/reactive-lib": {
+    "rev": "d664678a7d86204c9391af4cedfd5ae0b0b904e4"
+  },
+  "packages/smart-contract/lib/solmate": {
+    "rev": "89365b880c4f3c786bdd453d4b8e8fe410344a69"
+  },
+  "packages/smart-contract/lib/universal-router": {
+    "rev": "3663f6db6e2fe121753cd2d899699c2dc75dca86"
+  },
+  "packages/smart-contract/lib/v2-core": {
+    "rev": "4dd59067c76dea4a0e8e4bfdda41877a6b16dedc"
+  },
+  "packages/smart-contract/lib/v3-core": {
+    "rev": "e3589b192d0be27e100cd0daaf6c97204fdb1899"
+  },
+  "packages/smart-contract/lib/v4-core": {
+    "rev": "59d3ecf53afa9264a16bba0e38f4c5d2231f80bc"
+  },
+  "packages/smart-contract/lib/v4-periphery": {
     "rev": "60cd93803ac2b7fa65fd6cd351fd5fd4cc8c9db5"
   }
 }
