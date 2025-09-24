@@ -1,10 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import {
   useAccount,
   useBalance,
   useContractRead,
   useContractWrite,
-  useWaitForTransaction,
   useChainId,
 } from 'wagmi';
 import { parseEther, formatEther, formatUnits } from 'viem';

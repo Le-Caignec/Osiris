@@ -94,6 +94,14 @@ npm start
 
 L'application sera disponible sur `http://localhost:3000`
 
+## Scripts Disponibles
+
+### Scripts Principaux
+
+- `npm start` - Démarre le serveur de développement
+- `npm run dev` - Alias pour `npm start`
+- `npm run build` - Compile l'application pour la production
+
 ## Structure du Projet
 
 ```

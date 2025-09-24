@@ -30,21 +30,6 @@ const Roadmap: React.FC = () => {
           </div>
         ))}
       </div>
-
-      {/* Call to Action */}
-      <div className='text-center mt-16 space-y-6'>
-        <h2 className='text-4xl font-bold text-white'>
-          Ready to invest smarter?
-        </h2>
-        <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-          <button className='bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors'>
-            Start DCA
-          </button>
-          <button className='border-2 border-gray-600 hover:border-gray-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors'>
-            View Demo
-          </button>
-        </div>
-      </div>
     </section>
   );
 };

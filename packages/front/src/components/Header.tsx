@@ -1,14 +1,11 @@
 import React from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useWallet } from '../providers/WalletProvider';
+import { Link, useLocation } from 'react-router-dom';
 
-interface HeaderProps {
-  currentView: 'home' | 'dashboard';
-  onViewChange: (view: 'home' | 'dashboard') => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ currentView, onViewChange }) => {
+const Header: React.FC = () => {
   const { isConnected } = useWallet();
+  const location = useLocation();
   return (
     <header className='flex justify-between items-center py-6 px-4'>
       <div className='flex items-center space-x-2'>
@@ -18,62 +15,29 @@ const Header: React.FC<HeaderProps> = ({ currentView, onViewChange }) => {
         <h1 className='text-2xl font-bold text-white'>OSIRIS</h1>
       </div>
 
-      <nav className='hidden md:flex space-x-8'>
-        <a
-          href='#product'
-          className='text-gray-300 hover:text-white transition-colors'
-        >
-          Product
-        </a>
-        <a
-          href='#security'
-          className='text-gray-300 hover:text-white transition-colors'
-        >
-          Security
-        </a>
-        <a
-          href='#roadmap'
-          className='text-gray-300 hover:text-white transition-colors'
-        >
-          Roadmap
-        </a>
-        <a
-          href='#team'
-          className='text-gray-300 hover:text-white transition-colors'
-        >
-          Team
-        </a>
-        <a
-          href='#docs'
-          className='text-gray-300 hover:text-white transition-colors'
-        >
-          Docs
-        </a>
-      </nav>
-
       <div className='flex items-center space-x-4'>
         {isConnected && (
           <div className='flex space-x-4'>
-            <button
-              onClick={() => onViewChange('home')}
+            <Link
+              to='/'
               className={`px-4 py-2 rounded-lg transition-colors ${
-                currentView === 'home'
+                location.pathname === '/'
                   ? 'bg-primary-600 text-white'
                   : 'text-gray-300 hover:text-white'
               }`}
             >
               Home
-            </button>
-            <button
-              onClick={() => onViewChange('dashboard')}
+            </Link>
+            <Link
+              to='/dashboard'
               className={`px-4 py-2 rounded-lg transition-colors ${
-                currentView === 'dashboard'
+                location.pathname === '/dashboard'
                   ? 'bg-primary-600 text-white'
                   : 'text-gray-300 hover:text-white'
               }`}
             >
               Dashboard
-            </button>
+            </Link>
           </div>
         )}
         <ConnectButton />
