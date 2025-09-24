@@ -132,7 +132,7 @@ const FundsCard: React.FC = () => {
                 isLoading ||
                 parseFloat(usdcDepositAmount) > parseFloat(balances.userUsdc)
               }
-              className='bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px]'
+              className='bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px] whitespace-nowrap'
             >
               Deposit
             </button>
@@ -167,12 +167,12 @@ const FundsCard: React.FC = () => {
             </span>
           </div>
 
-          <div className='flex space-x-3'>
+          <div className='flex flex-col gap-3 sm:flex-row'>
             <input
               type='number'
               value={usdcWithdrawAmount}
               onChange={e => setUsdcWithdrawAmount(e.target.value)}
-              className='flex-1 bg-gray-600 text-white rounded-xl p-3 border border-gray-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all duration-200'
+              className='flex-1 min-w-0 bg-gray-600 text-white rounded-xl p-3 border border-gray-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all duration-200'
               placeholder='Amount to withdraw'
             />
             <button
@@ -182,7 +182,7 @@ const FundsCard: React.FC = () => {
                 isLoading ||
                 parseFloat(usdcWithdrawAmount) > parseFloat(balances.vaultUsdc)
               }
-              className='bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px] sm:min-w-[120px]'
+              className='bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px] sm:min-w-[120px] whitespace-nowrap flex-shrink-0'
             >
               Withdraw
             </button>
@@ -217,12 +217,12 @@ const FundsCard: React.FC = () => {
             </span>
           </div>
 
-          <div className='flex space-x-3'>
+          <div className='flex flex-col gap-3 sm:flex-row'>
             <input
               type='number'
               value={ethWithdrawAmount}
               onChange={e => setEthWithdrawAmount(e.target.value)}
-              className='flex-1 bg-gray-600 text-white rounded-xl p-3 border border-gray-500 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/20 transition-all duration-200'
+              className='flex-1 min-w-0 bg-gray-600 text-white rounded-xl p-3 border border-gray-500 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/20 transition-all duration-200'
               placeholder='Amount to claim'
             />
             <button
@@ -232,7 +232,7 @@ const FundsCard: React.FC = () => {
                 isLoading ||
                 parseFloat(ethWithdrawAmount) > parseFloat(balances.userNative)
               }
-              className='bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px]'
+              className='bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 min-w-[100px] whitespace-nowrap flex-shrink-0'
             >
               Claim
             </button>
