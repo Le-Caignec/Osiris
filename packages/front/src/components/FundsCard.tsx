@@ -167,7 +167,7 @@ const FundsCard: React.FC = () => {
             </span>
           </div>
 
-          <div className='flex flex-col sm:flex-row gap-3'>
+          <div className='flex space-x-3'>
             <input
               type='number'
               value={usdcWithdrawAmount}
