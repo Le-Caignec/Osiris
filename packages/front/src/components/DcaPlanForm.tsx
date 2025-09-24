@@ -3,7 +3,7 @@ import { useWallet } from '../providers/WalletProvider';
 import { Frequency, FREQUENCY_LABELS } from '../config/contracts';
 
 const DcaPlanForm: React.FC = () => {
-  const { isConnected, setPlan, approveUsdc, isLoading } = useWallet();
+  const { isConnected, setPlan, isLoading } = useWallet();
   const [amountPerBuy, setAmountPerBuy] = useState('50');
   const [frequency, setFrequency] = useState<Frequency>(Frequency.Weekly);
 
@@ -11,9 +11,7 @@ const DcaPlanForm: React.FC = () => {
     if (!isConnected) return;
 
     try {
-      // First approve USDC if needed
-      await approveUsdc(amountPerBuy);
-      // Then set the plan
+      // Set the plan
       await setPlan(frequency, amountPerBuy);
     } catch (error) {
       console.error('Error starting DCA plan:', error);
@@ -26,7 +24,7 @@ const DcaPlanForm: React.FC = () => {
 
       {/* Token Selection - Fixed ETH */}
       <div className='space-y-2'>
-        <label className='text-gray-300 text-sm font-medium'>Buy</label>
+        <label className='text-gray-300 text-sm font-medium'>Token Buy</label>
         <div className='flex items-center space-x-3 bg-gray-700 rounded-lg p-3'>
           <div className='w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center'>
             <span className='text-white text-sm font-bold'>Ξ</span>
