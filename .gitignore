@@ -12,6 +12,3 @@ packages/smart-contract/docs/
 
 # Dotenv file
 .env
-
-# Exclude submodule directories (they should be managed by forge install)
-packages/smart-contract/lib/
