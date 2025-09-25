@@ -2,13 +2,13 @@
 export const CONTRACT_ADDRESSES = {
   // Ethereum Mainnet
   ethereum: {
-    osiris: '0x0000000000000000000000000000000000000000', // TODO: Replace with actual deployed address
-    usdc: '0xA0b86a33E6441b8C4C8C0d4B0a1a2a3a4a5a6a7a8', // TODO: Replace with actual USDC address
+    osiris: '0x9C4031fC80040b6ad84766405D611B5105D18e48',
+    usdc: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   },
   // Sepolia Testnet
   sepolia: {
-    osiris: '0x0000000000000000000000000000000000000000', // TODO: Replace with actual deployed address
-    usdc: '0x94a9D9AC8a22534E3FaCa9F4e7F2E2deF89A357Fb', // Sepolia USDC address
+    osiris: '0x9C4031fC80040b6ad84766405D611B5105D18e48',
+    usdc: '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238',
   },
 };
 
