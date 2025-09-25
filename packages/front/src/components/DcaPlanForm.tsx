@@ -1,25 +1,11 @@
-import React, { useState } from 'react';
-import { useWallet } from '../providers/WalletProvider';
-import { Frequency, FREQUENCY_LABELS } from '../config/contracts';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const DcaPlanForm: React.FC = () => {
-  const { isConnected, setPlan } = useWallet();
-  const [amountPerBuy, setAmountPerBuy] = useState('50');
-  const [frequency, setFrequency] = useState<Frequency>(Frequency.Weekly);
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleStartDcaPlan = async () => {
-    if (!isConnected) return;
-
-    setIsLoading(true);
-    try {
-      await setPlan(frequency, amountPerBuy);
-      // Handle result if needed
-    } catch (error) {
-      console.error('Error starting DCA plan:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleStartDcaPlan = () => {
+    navigate('/dashboard');
   };
 
   return (
@@ -43,53 +29,25 @@ const DcaPlanForm: React.FC = () => {
         <label className='text-gray-300 text-sm font-medium'>
           Amount per-buy
         </label>
-        <input
-          type='number'
-          value={amountPerBuy}
-          onChange={e => setAmountPerBuy(e.target.value)}
-          className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600 focus:border-primary-500 focus:outline-none'
-          placeholder='$50'
-        />
+        <div className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600'>
+          $50
+        </div>
       </div>
 
       {/* Frequency */}
       <div className='space-y-2'>
         <label className='text-gray-300 text-sm font-medium'>Frequency</label>
-        <div className='relative'>
-          <select
-            value={frequency}
-            onChange={e => setFrequency(Number(e.target.value) as Frequency)}
-            className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600 focus:border-primary-500 focus:outline-none appearance-none'
-          >
-            {Object.entries(FREQUENCY_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <svg
-            className='w-4 h-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none'
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              strokeWidth={2}
-              d='M19 9l-7 7-7-7'
-            />
-          </svg>
+        <div className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600'>
+          Weekly
         </div>
       </div>
 
       {/* Start DCA Plan Button */}
       <button
         onClick={handleStartDcaPlan}
-        disabled={!isConnected || isLoading}
-        className='w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold text-lg transition-colors'
+        className='w-full bg-primary-600 hover:bg-primary-700 text-white py-4 rounded-lg font-semibold text-lg transition-colors'
       >
-        {isLoading ? 'Processing...' : 'Start DCA Plan'}
+        Create DCA Plan
       </button>
 
       <p className='text-gray-400 text-sm text-center'>
