@@ -47,7 +47,7 @@ const DcaPlanForm: React.FC = () => {
         onClick={handleStartDcaPlan}
         className='w-full bg-primary-600 hover:bg-primary-700 text-white py-4 rounded-lg font-semibold text-lg transition-colors'
       >
-        Create DCA Plan
+        Get Started
       </button>
 
       <p className='text-gray-400 text-sm text-center'>
