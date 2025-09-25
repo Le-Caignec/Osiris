@@ -173,10 +173,10 @@ const FundsCard: React.FC = () => {
 
           <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-1 sm:gap-0'>
             <span className='text-gray-400 text-xs sm:text-sm'>
-              Vault USDC Available
+              Your USDC Available
             </span>
             <span className='text-red-400 font-bold text-sm sm:text-base'>
-              ${parseFloat(balances.vaultUsdc).toFixed(2)}
+              ${parseFloat(balances.userUsdc).toFixed(2)}
             </span>
           </div>
 
@@ -193,7 +193,7 @@ const FundsCard: React.FC = () => {
               disabled={
                 !usdcWithdrawAmount ||
                 isLoading ||
-                parseFloat(usdcWithdrawAmount) > parseFloat(balances.vaultUsdc)
+                parseFloat(usdcWithdrawAmount) > parseFloat(balances.userUsdc)
               }
               className='bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-200 w-full whitespace-nowrap text-sm sm:text-base'
             >
