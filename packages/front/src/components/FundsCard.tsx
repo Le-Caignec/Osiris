@@ -84,8 +84,8 @@ const FundsCard: React.FC = () => {
   }
 
   return (
-    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 min-h-[400px]'>
-      <div className='flex items-center space-x-3 mb-4 sm:mb-6'>
+    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300'>
+      <div className='flex items-center space-x-3 mb-3 sm:mb-4'>
         <div className='w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0'>
           <svg
             className='w-4 h-4 sm:w-5 sm:h-5 text-white'
@@ -106,7 +106,7 @@ const FundsCard: React.FC = () => {
         </h3>
       </div>
 
-      <div className='space-y-4 sm:space-y-6'>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4'>
         {/* USDC Deposit */}
         <div className='bg-gray-700/50 rounded-xl p-3 sm:p-4 hover:bg-gray-700/70 transition-colors duration-200'>
           <div className='flex items-center space-x-3 mb-3 sm:mb-4'>

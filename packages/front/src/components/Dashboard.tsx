@@ -52,17 +52,21 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className='grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 min-h-[400px] sm:min-h-[500px] lg:min-h-[600px]'>
+        <div className='grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6 lg:gap-8'>
           {/* Left Column - Balances */}
-          <div className='xl:col-span-4 space-y-4 sm:space-y-6 order-2 xl:order-1'>
+          <div className='xl:col-span-4 order-2 xl:order-1'>
             <BalanceCard />
-            <FundsCard />
           </div>
 
           {/* Right Column - DCA Plan */}
           <div className='xl:col-span-8 order-1 xl:order-2'>
             <DcaPlanCard />
           </div>
+        </div>
+
+        {/* Fund Management Section */}
+        <div className='mt-4 sm:mt-6 lg:mt-8'>
+          <FundsCard />
         </div>
       </div>
     </div>

@@ -91,7 +91,7 @@ const BalanceCard: React.FC = () => {
   ];
 
   return (
-    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col'>
+    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col h-full'>
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0'>
         <div className='flex items-center space-x-3'>
           <div className='w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0'>
