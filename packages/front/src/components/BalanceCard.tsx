@@ -104,8 +104,8 @@ const BalanceCard: React.FC = () => {
           />
         </svg>
       ),
-      label: 'Your ETH Balance',
-      value: `${formatBalance(balances.eth, 4)} ETH`,
+      label: 'Available ETH to Claim',
+      value: `${formatBalance(balances.userNative, 4)} ETH`,
       color: 'text-yellow-400',
     },
     {

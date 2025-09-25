@@ -355,15 +355,22 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         : '0',
   };
 
+  // Debug logging
+  console.log('userPlan data:', userPlan);
+
   const dcaPlan =
-    userPlan && (userPlan as any)[1] !== undefined
+    userPlan &&
+    userPlan.freq !== undefined &&
+    userPlan.amountPerPeriod !== undefined
       ? {
-          frequency: (userPlan as any)[0] as Frequency,
-          amountPerPeriod: formatUnits((userPlan as any)[1], 6), // USDC has 6 decimals
-          nextExecutionTimestamp: Number((userPlan as any)[2]),
-          isActive: Number((userPlan as any)[2]) > 0,
+          frequency: userPlan.freq as Frequency,
+          amountPerPeriod: formatUnits(userPlan.amountPerPeriod, 6), // USDC has 6 decimals
+          nextExecutionTimestamp: Number(userPlan.nextExecutionTimestamp),
+          isActive: Number(userPlan.nextExecutionTimestamp) > 0,
         }
       : null;
+
+  console.log('parsed dcaPlan:', dcaPlan);
 
   const value: WalletContextType = {
     address,

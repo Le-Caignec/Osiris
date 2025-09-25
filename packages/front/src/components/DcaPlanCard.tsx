@@ -237,7 +237,7 @@ const DcaPlanCard: React.FC = () => {
   };
 
   return (
-    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 min-h-[500px] sm:min-h-[600px] flex flex-col'>
+    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col'>
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4 sm:gap-0'>
         <div className='flex items-center space-x-3'>
           <div className='w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center flex-shrink-0'>
