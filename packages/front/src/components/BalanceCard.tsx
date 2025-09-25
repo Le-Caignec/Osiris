@@ -118,7 +118,7 @@ const BalanceCard: React.FC = () => {
         </div>
       </div>
 
-      <div className='space-y-3 sm:space-y-4 flex-1'>
+      <div className='space-y-3 sm:space-y-4 flex-1 flex flex-col justify-center'>
         {balanceItems.map((item, index) => (
           <div
             key={index}

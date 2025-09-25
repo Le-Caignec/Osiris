@@ -47,9 +47,9 @@ const Features: React.FC = () => {
           />
         </svg>
       ),
-      title: 'Available ETH',
+      title: 'Total ETH Claimable',
       value: `${formatBalance(balances.userNative, 4)} ETH`,
-      description: 'ETH available to claim',
+      description: 'Total ETH available to claim',
       color: 'text-yellow-400',
     },
     {
