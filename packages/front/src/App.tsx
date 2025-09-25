@@ -35,13 +35,33 @@ const config = createConfig({
   webSocketPublicClient,
 });
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error: any) => {
+        // Don't retry ENS-related errors
+        if (
+          error?.message?.includes('reverse') ||
+          error?.message?.includes('ENS')
+        ) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 function App() {
   return (
     <WagmiConfig config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider chains={chains}>
+        <RainbowKitProvider
+          chains={chains}
+          initialChain={sepolia}
+          showRecentTransactions={false}
+        >
           <WalletProvider>
             <Router>
               <Layout>

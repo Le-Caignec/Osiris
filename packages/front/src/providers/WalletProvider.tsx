@@ -177,12 +177,28 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
 
   const depositUsdc = async (amount: string) => {
-    const amountWei = parseEther(amount);
+    // Convert to USDC amount (6 decimals, not 18)
+    const amountWei = BigInt(parseFloat(amount) * 1e6);
+
+    // Check if user has enough USDC balance
+    if (!usdcBalance || usdcBalance.value < amountWei) {
+      throw new Error('Insufficient USDC balance');
+    }
+
+    // First approve USDC spending
+    await handleTransaction(() =>
+      approveUsdcWrite({
+        args: [contractAddresses.osiris as `0x${string}`, amountWei],
+      })
+    );
+
+    // Then deposit USDC
     await handleTransaction(() => depositUsdcWrite({ args: [amountWei] }));
   };
 
   const withdrawUsdc = async (amount: string) => {
-    const amountWei = parseEther(amount);
+    // Convert to USDC amount (6 decimals, not 18)
+    const amountWei = BigInt(parseFloat(amount) * 1e6);
     await handleTransaction(() => withdrawUsdcWrite({ args: [amountWei] }));
   };
 
@@ -192,7 +208,8 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
 
   const setPlan = async (frequency: Frequency, amountPerPeriod: string) => {
-    const amountWei = parseEther(amountPerPeriod);
+    // Convert to USDC amount (6 decimals, not 18)
+    const amountWei = BigInt(parseFloat(amountPerPeriod) * 1e6);
     await handleTransaction(() =>
       setPlanWrite({ args: [frequency, amountWei] })
     );
@@ -207,7 +224,8 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
 
   const approveUsdc = async (amount: string) => {
-    const amountWei = parseEther(amount);
+    // Convert to USDC amount (6 decimals, not 18)
+    const amountWei = BigInt(parseFloat(amount) * 1e6);
     await handleTransaction(() =>
       approveUsdcWrite({
         args: [contractAddresses.osiris as `0x${string}`, amountWei],
