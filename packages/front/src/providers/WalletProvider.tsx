@@ -5,8 +5,15 @@ import {
   useContractRead,
   useContractWrite,
   useChainId,
+  usePublicClient,
 } from 'wagmi';
-import { parseEther, parseUnits, formatEther, formatUnits } from 'viem';
+import {
+  parseEther,
+  parseUnits,
+  formatEther,
+  formatUnits,
+} from 'viem';
+import { waitForTransactionReceipt } from 'viem/actions';
 import {
   CONTRACT_ADDRESSES,
   OSIRIS_ABI,
@@ -66,6 +73,7 @@ interface WalletProviderProps {
 const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
+  const publicClient = usePublicClient();
 
   // Get contract addresses based on current chain
   const getContractAddresses = () => {
@@ -203,16 +211,23 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
 
     try {
-      // First approve USDC spending
-      await approveUsdcWrite({
+      // 1) Approve USDC spending
+      const approveTx = await approveUsdcWrite({
         args: [contractAddresses.osiris as `0x${string}`, amountWei],
       });
 
-      // Then deposit USDC
-      const depositResult = await depositUsdcWrite({ args: [amountWei] });
+      // 2) Wait for approval confirmation
+      if (!publicClient) throw new Error('No public client available');
+      await waitForTransactionReceipt(publicClient, { hash: approveTx.hash });
+
+      // 3) Deposit USDC only after approval is mined
+      const depositTx = await depositUsdcWrite({ args: [amountWei] });
+
+      // (Optional) wait for deposit confirmation as well
+      await waitForTransactionReceipt(publicClient, { hash: depositTx.hash });
 
       return {
-        hash: depositResult.hash,
+        hash: depositTx.hash,
         status: 'success',
       };
     } catch (error) {
