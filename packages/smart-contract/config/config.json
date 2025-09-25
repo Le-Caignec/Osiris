@@ -20,7 +20,7 @@
             "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
             "usdc": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
             "callbackProxyContract":"0xc9f36411C9897e7F959D99ffca2a0Ba7ee0D7bDA",
-            "callbackContract":"0x0000000000000000000000000000000000000000"
+            "callbackContract":"0x9C4031fC80040b6ad84766405D611B5105D18e48"
         },
         "lasna": {
             "chainId": 5318008,

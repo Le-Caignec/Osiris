@@ -63,3 +63,12 @@ unpause-cron-reactive:
 		--account $(ACCOUNT) \
 		--broadcast \
 		-vvv
+
+# Osiris Management Commands
+trigger-osiris-callback:
+	# Trigger the Osiris callback on Sepolia/Ethereum
+	forge script script/OsirisAction.s.sol:TriggerOsirisCallback \
+		--rpc-url $(RPC_URL) \
+		--account $(ACCOUNT) \
+		--broadcast \
+		-vvv
