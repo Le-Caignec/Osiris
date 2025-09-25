@@ -6,7 +6,7 @@
 
 # Testing Commands
 fork-sepolia:
-	anvil --fork-url $(SEPOLIA_RPC_URL) --port 8545
+	anvil --fork-url $(RPC_URL) --port 8545
 
 test-unit:
 	# Run units tests with gas reporting
@@ -16,7 +16,7 @@ test-unit:
 deploy-reactive:
 	# Deploy to Lasna (Cron Reactive Contract)
 	forge script script/Deploy.s.sol:DeployCronReactive \
-		--rpc-url $(LASNA_RPC) \
+		--rpc-url $(LASNA_RPC_URL) \
 		--account $(ACCOUNT) \
 		--broadcast \
 		--verify \
@@ -24,10 +24,11 @@ deploy-reactive:
 		--verifier-url $(LASNA_VERIFIER_URL) \
 		-vvv
 
+# TODO: To remove
 deploy-callback:
-	# Deploy to Sepolia (Callback Contracts)
+	# Deploy to Ethereum/Sepolia (Callback Contracts)
 	forge script script/Deploy.s.sol:DeployCallback \
-		--rpc-url $(SEPOLIA_RPC) \
+		--rpc-url $(RPC_URL) \
 		--account $(ACCOUNT) \
 		--broadcast \
 		--verify \
@@ -36,9 +37,9 @@ deploy-callback:
 		-vvv
 
 deploy-osiris:
-	# Deploy to Sepolia (Swap Contracts)
+	# Deploy to Ethereum/Sepolia (Swap Contracts)
 	forge script script/Deploy.s.sol:DeployOsiris \
-		--rpc-url $(SEPOLIA_RPC) \
+		--rpc-url $(RPC_URL) \
 		--account $(ACCOUNT) \
 		--broadcast \
 		--verify \
@@ -50,7 +51,7 @@ deploy-osiris:
 pause-cron-reactive:
 	# Pause the CronReactive contract on Lasna
 	forge script script/CronAction.s.sol:CronActionPause \
-		--rpc-url $(LASNA_RPC) \
+		--rpc-url $(LASNA_RPC_URL) \
 		--account $(ACCOUNT) \
 		--broadcast \
 		-vvv
@@ -58,7 +59,7 @@ pause-cron-reactive:
 unpause-cron-reactive:
 	# Unpause the CronReactive contract on Lasna
 	forge script script/CronAction.s.sol:CronActionUnpause \
-		--rpc-url $(LASNA_RPC) \
+		--rpc-url $(LASNA_RPC_URL) \
 		--account $(ACCOUNT) \
 		--broadcast \
 		-vvv

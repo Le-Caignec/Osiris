@@ -7,6 +7,7 @@ import {CronReactive} from "../src/CronReactive.sol";
 import {Osiris} from "../src/Osiris.sol";
 import {ConfigLib} from "./lib/configLib.sol";
 
+// TODO: To remove
 contract DeployCallback is Script {
     function run() external {
         string memory chain = vm.envString("CHAIN");
