@@ -3,6 +3,8 @@
 OSIRIS is a pooled smart contract executing Dollar-Cost Averaging (DCA) from USDC to the native token via Uniswap v4.  
 Users deposit USDC, configure a plan (frequency + amount per period), and CronReactive (Reactive Network) periodically triggers the vault callback on Ethereum.
 
+🌐 **[Try Osiris DApp](https://osiris-flax.vercel.app/)**
+
 ---
 
 ## Project Structure
@@ -37,6 +39,44 @@ The smart contract package contains the core Osiris DCA logic and related contra
 
 - Reactive Mainnet: CronReactive triggers the Osiris callback.
 - Ethereum Mainnet: Osiris contract, Uniswap v4 Router, Permit2, USDC, ETH.
+
+---
+
+## Deployed Testnet Addresses
+
+See addresses in `packages/front/src/config/contracts.ts`:
+
+- **Sepolia Testnet**:
+  - Osiris Contract: `0x9C4031fC80040b6ad84766405D611B5105D18e48`
+  - Reactive Cron Contract: `...`
+
+### Testing Setup
+
+To test the application, you need to deposit USDC into the vault. Get testnet USDC tokens using the Circle faucet:
+
+🔗 **[Circle Testnet Faucet](https://faucet.circle.com/)**
+
+The faucet provides 10 USDC per hour per address per hours
+
+---
+
+## Mainnet Deployment
+
+### Ethereum Mainnet Addresses
+
+- **Ethereum Mainnet**:
+  - Osiris Contract: `Deployed address coming soon...`
+  - Reactive Cron Contract: `Deployed address coming soon...`
+
+### Getting Started on Mainnet
+
+To use Osiris on mainnet:
+
+1. **Buy USDC**: Use [Uniswap](https://app.uniswap.org/) to swap ETH for USDC tokens
+2. **Use the DApp**: Visit the Osiris DApp at [https://osiris-flax.vercel.app/](https://osiris-flax.vercel.app/) to:
+   - Deposit USDC into the Osiris vault
+   - Configure your DCA plan (frequency and amount per period)
+   - Manage your deposits and withdrawals
 
 ---
 
