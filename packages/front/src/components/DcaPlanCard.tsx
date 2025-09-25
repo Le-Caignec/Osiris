@@ -3,10 +3,10 @@ import { useWallet } from '../providers/WalletProvider';
 import { format } from 'date-fns';
 
 const DcaPlanCard: React.FC = () => {
-  const { isConnected, dcaPlan, setPlan, pausePlan, resumePlan, isLoading } =
-    useWallet();
+  const { isConnected, dcaPlan, setPlan, pausePlan, resumePlan } = useWallet();
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [editFrequency, setEditFrequency] = useState(dcaPlan?.frequency || 1);
   const [editAmount, setEditAmount] = useState(
     dcaPlan?.amountPerPeriod || '50'
@@ -15,28 +15,39 @@ const DcaPlanCard: React.FC = () => {
   const handleCreatePlan = async () => {
     if (!isConnected) return;
 
+    setIsLoading(true);
     try {
-      await setPlan(editFrequency, editAmount);
-      setIsCreating(false);
+      const result = await setPlan(editFrequency, editAmount);
+      if (result.status === 'success') {
+        setIsCreating(false);
+      }
     } catch (error) {
       console.error('Error creating plan:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSavePlan = async () => {
     if (!isConnected) return;
 
+    setIsLoading(true);
     try {
-      await setPlan(editFrequency, editAmount);
-      setIsEditing(false);
+      const result = await setPlan(editFrequency, editAmount);
+      if (result.status === 'success') {
+        setIsEditing(false);
+      }
     } catch (error) {
       console.error('Error updating plan:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handlePauseResume = async () => {
     if (!isConnected || !dcaPlan) return;
 
+    setIsLoading(true);
     try {
       if (dcaPlan.isActive) {
         await pausePlan();
@@ -45,6 +56,8 @@ const DcaPlanCard: React.FC = () => {
       }
     } catch (error) {
       console.error('Error pausing/resuming plan:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

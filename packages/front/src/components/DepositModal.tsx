@@ -7,18 +7,34 @@ interface DepositModalProps {
 }
 
 const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
-  const { isConnected, depositUsdc, isLoading } = useWallet();
+  const { isConnected, depositUsdc } = useWallet();
   const [depositAmount, setDepositAmount] = useState('');
+  const [transactionResult, setTransactionResult] = useState<{
+    hash: string;
+    status: string;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleDeposit = async () => {
     if (!isConnected || !depositAmount) return;
 
+    setIsLoading(true);
+    setTransactionResult(null);
+
     try {
-      await depositUsdc(depositAmount);
-      setDepositAmount('');
-      onClose();
+      const result = await depositUsdc(depositAmount);
+      setTransactionResult({ hash: result.hash, status: result.status });
+
+      if (result.status === 'success') {
+        setDepositAmount('');
+        // Close modal after a short delay to show the transaction hash
+        setTimeout(() => onClose(), 2000);
+      }
     } catch (error) {
       console.error('Error depositing USDC:', error);
+      setTransactionResult({ hash: '', status: 'error' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -78,6 +94,32 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
               {isLoading ? 'Processing...' : 'Deposit'}
             </button>
           </div>
+
+          {/* Transaction Status */}
+          {transactionResult && transactionResult.hash && (
+            <div className='space-y-2'>
+              <div className='text-xs text-gray-400'>
+                <span className='font-medium'>Transaction:</span>{' '}
+                <a
+                  href={`https://sepolia.etherscan.io/tx/${transactionResult.hash}`}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-blue-400 hover:text-blue-300 underline'
+                >
+                  {transactionResult.hash.slice(0, 10)}...
+                </a>
+                <span
+                  className={`ml-2 px-2 py-1 rounded text-xs ${
+                    transactionResult.status === 'success'
+                      ? 'bg-green-900 text-green-300'
+                      : 'bg-red-900 text-red-300'
+                  }`}
+                >
+                  {transactionResult.status}
+                </span>
+              </div>
+            </div>
+          )}
 
           <p className='text-gray-400 text-sm text-center'>
             Your USDC will be deposited into the vault for DCA execution

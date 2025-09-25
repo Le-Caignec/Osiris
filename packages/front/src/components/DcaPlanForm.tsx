@@ -3,18 +3,22 @@ import { useWallet } from '../providers/WalletProvider';
 import { Frequency, FREQUENCY_LABELS } from '../config/contracts';
 
 const DcaPlanForm: React.FC = () => {
-  const { isConnected, setPlan, isLoading } = useWallet();
+  const { isConnected, setPlan } = useWallet();
   const [amountPerBuy, setAmountPerBuy] = useState('50');
   const [frequency, setFrequency] = useState<Frequency>(Frequency.Weekly);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleStartDcaPlan = async () => {
     if (!isConnected) return;
 
+    setIsLoading(true);
     try {
-      // Set the plan
       await setPlan(frequency, amountPerBuy);
+      // Handle result if needed
     } catch (error) {
       console.error('Error starting DCA plan:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

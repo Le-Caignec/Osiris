@@ -2,42 +2,58 @@ import React, { useState } from 'react';
 import { useWallet } from '../providers/WalletProvider';
 
 const FundsCard: React.FC = () => {
-  const { isConnected, balances, withdrawUsdc, claimNative, depositUsdc, isLoading } =
+  const { isConnected, balances, withdrawUsdc, claimNative, depositUsdc } =
     useWallet();
   const [usdcWithdrawAmount, setUsdcWithdrawAmount] = useState('');
   const [usdcDepositAmount, setUsdcDepositAmount] = useState('');
   const [ethWithdrawAmount, setEthWithdrawAmount] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleWithdrawUsdc = async () => {
     if (!isConnected || !usdcWithdrawAmount) return;
 
+    setIsLoading(true);
     try {
-      await withdrawUsdc(usdcWithdrawAmount);
-      setUsdcWithdrawAmount('');
+      const result = await withdrawUsdc(usdcWithdrawAmount);
+      if (result.status === 'success') {
+        setUsdcWithdrawAmount('');
+      }
     } catch (error) {
       console.error('Error withdrawing USDC:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDepositUsdc = async () => {
     if (!isConnected || !usdcDepositAmount) return;
 
+    setIsLoading(true);
     try {
-      await depositUsdc(usdcDepositAmount);
-      setUsdcDepositAmount('');
+      const result = await depositUsdc(usdcDepositAmount);
+      if (result.status === 'success') {
+        setUsdcDepositAmount('');
+      }
     } catch (error) {
       console.error('Error depositing USDC:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleClaimEth = async () => {
     if (!isConnected || !ethWithdrawAmount) return;
 
+    setIsLoading(true);
     try {
-      await claimNative(ethWithdrawAmount);
-      setEthWithdrawAmount('');
+      const result = await claimNative(ethWithdrawAmount);
+      if (result.status === 'success') {
+        setEthWithdrawAmount('');
+      }
     } catch (error) {
       console.error('Error claiming ETH:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -114,15 +130,6 @@ const FundsCard: React.FC = () => {
             </span>
           </div>
 
-          <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-1 sm:gap-0'>
-            <span className='text-gray-400 text-xs sm:text-sm'>
-              Your USDC Balance
-            </span>
-            <span className='text-green-400 font-bold text-sm sm:text-base'>
-              ${parseFloat(balances.userUsdc).toFixed(2)}
-            </span>
-          </div>
-
           <div className='flex flex-col gap-2 sm:gap-3'>
             <input
               type='number'
@@ -133,11 +140,7 @@ const FundsCard: React.FC = () => {
             />
             <button
               onClick={handleDepositUsdc}
-              disabled={
-                !usdcDepositAmount ||
-                isLoading ||
-                parseFloat(usdcDepositAmount) > parseFloat(balances.userUsdc)
-              }
+              disabled={!usdcDepositAmount || isLoading}
               className='bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-200 w-full whitespace-nowrap text-sm sm:text-base'
             >
               Deposit

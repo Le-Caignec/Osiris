@@ -8,19 +8,34 @@ interface CreateDcaModalProps {
 }
 
 const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
-  const { isConnected, setPlan, isLoading } = useWallet();
+  const { isConnected, setPlan } = useWallet();
   const [amountPerBuy, setAmountPerBuy] = useState('50');
   const [frequency, setFrequency] = useState<Frequency>(Frequency.Weekly);
+  const [isLoading, setIsLoading] = useState(false);
+  const [transactionResult, setTransactionResult] = useState<{
+    hash: string;
+    status: string;
+  } | null>(null);
 
   const handleCreateDcaPlan = async () => {
     if (!isConnected) return;
 
+    setIsLoading(true);
+    setTransactionResult(null);
+
     try {
-      // Set the plan
-      await setPlan(frequency, amountPerBuy);
-      onClose();
+      const result = await setPlan(frequency, amountPerBuy);
+      setTransactionResult({ hash: result.hash, status: result.status });
+
+      if (result.status === 'success') {
+        // Close modal after a short delay to show the transaction hash
+        setTimeout(() => onClose(), 2000);
+      }
     } catch (error) {
       console.error('Error creating DCA plan:', error);
+      setTransactionResult({ hash: '', status: 'error' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,7 +69,9 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
         <div className='space-y-6'>
           {/* Token Selection - Fixed ETH */}
           <div className='space-y-2'>
-            <label className='text-gray-300 text-sm font-medium'>Token Buy</label>
+            <label className='text-gray-300 text-sm font-medium'>
+              Token Buy
+            </label>
             <div className='flex items-center space-x-3 bg-gray-700 rounded-lg p-3'>
               <div className='w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center'>
                 <span className='text-white text-sm font-bold'>Ξ</span>
@@ -128,6 +145,32 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
               {isLoading ? 'Processing...' : 'Create Plan'}
             </button>
           </div>
+
+          {/* Transaction Status */}
+          {transactionResult && transactionResult.hash && (
+            <div className='space-y-2'>
+              <div className='text-xs text-gray-400'>
+                <span className='font-medium'>Transaction:</span>{' '}
+                <a
+                  href={`https://sepolia.etherscan.io/tx/${transactionResult.hash}`}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-blue-400 hover:text-blue-300 underline'
+                >
+                  {transactionResult.hash.slice(0, 10)}...
+                </a>
+                <span
+                  className={`ml-2 px-2 py-1 rounded text-xs ${
+                    transactionResult.status === 'success'
+                      ? 'bg-green-900 text-green-300'
+                      : 'bg-red-900 text-red-300'
+                  }`}
+                >
+                  {transactionResult.status}
+                </span>
+              </div>
+            </div>
+          )}
 
           <p className='text-gray-400 text-sm text-center'>
             100% on-chain - fully decentralized

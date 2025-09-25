@@ -8,18 +8,30 @@ import {
 import { WagmiConfig, createConfig, configureChains } from 'wagmi';
 import { mainnet, sepolia } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
 import { RainbowKitProvider, getDefaultWallets } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
 import Layout from './components/Layout';
 import Home from './components/Home';
 import Dashboard from './components/Dashboard';
 import WalletProvider from './providers/WalletProvider';
+import { CHAIN } from './config/contracts';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [mainnet, sepolia],
-  [publicProvider()]
+  [
+    // Use custom RPC for Sepolia; fall back to public provider for others
+    jsonRpcProvider({
+      rpc: chain =>
+        chain.id === sepolia.id
+          ? {
+              http: CHAIN.sepolia.rpc,
+            }
+          : null,
+    }),
+    publicProvider(),
+  ]
 );
 
 const { connectors } = getDefaultWallets({
