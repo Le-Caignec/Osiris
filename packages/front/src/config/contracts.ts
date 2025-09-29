@@ -3,7 +3,7 @@ export const CHAIN = {
   // Ethereum Mainnet
   ethereum: {
     contracts: {
-      osiris: '',
+      osiris: '...',
       usdc: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     },
     rpc: 'https://mainnet.gateway.tenderly.co',
@@ -11,7 +11,7 @@ export const CHAIN = {
   // Sepolia Testnet
   sepolia: {
     contracts: {
-      osiris: '0x9C4031fC80040b6ad84766405D611B5105D18e48',
+      osiris: '0x5Cc66CD775c0aFd014AE196cEB1457EDfC78B1D5',
       usdc: '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238',
     },
     rpc: 'https://gateway.tenderly.co/public/sepolia',
