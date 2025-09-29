@@ -9,7 +9,6 @@ contract CronReactive is AbstractPausableReactive {
     uint64 private constant GAS_LIMIT = 1000000;
     uint256 public destinationChainId;
     address private callback;
-    uint256 public lastCronBlock;
 
     constructor(address _service, uint256 _cronTopic, uint256 _destinationChainId, address _callback) payable {
         service = ISystemContract(payable(_service));
@@ -17,9 +16,11 @@ contract CronReactive is AbstractPausableReactive {
         destinationChainId = _destinationChainId;
         callback = _callback;
 
-        service.subscribe(
-            block.chainid, address(service), _cronTopic, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE
-        );
+        if (!vm) {
+            service.subscribe(
+                block.chainid, address(service), _cronTopic, REACTIVE_IGNORE, REACTIVE_IGNORE, REACTIVE_IGNORE
+            );
+        }
     }
 
     function getPausableSubscriptions() internal view override returns (Subscription[] memory) {
@@ -31,14 +32,8 @@ contract CronReactive is AbstractPausableReactive {
 
     function react(LogRecord calldata log) external vmOnly {
         if (log.topic_0 == conTopic) {
-            lastCronBlock = block.number;
             bytes memory payload = abi.encodeWithSignature("callback(address)", address(0));
             emit Callback(destinationChainId, callback, GAS_LIMIT, payload);
         }
-    }
-
-    // For testing`rnk_call`
-    function getLastCronBlock() external view returns (uint256) {
-        return lastCronBlock;
     }
 }

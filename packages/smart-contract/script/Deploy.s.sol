@@ -30,10 +30,11 @@ contract DeployOsiris is Script {
         address universalRouter = config.uniswapUniversalRouter;
         address permit2 = config.uniswapPermit2;
         address usdc = config.usdc;
+        address callbackSender = config.callbackProxyContract;
 
         vm.startBroadcast();
         // Deploy the Osiris contract on Sepolia/Ethereum
-        Osiris osirisContract = new Osiris{value: 0.00001 ether}(universalRouter, permit2, usdc);
+        Osiris osirisContract = new Osiris{value: 0.01 ether}(universalRouter, permit2, usdc, callbackSender);
         console.log("Osiris Contract Address (Sepolia):", address(osirisContract));
         vm.stopBroadcast();
     }

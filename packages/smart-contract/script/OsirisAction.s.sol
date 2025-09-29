@@ -7,14 +7,15 @@ import {ConfigLib} from "./lib/configLib.sol";
 
 contract TriggerOsirisCallback is Script {
     function run() external {
- string memory chain = vm.envString("CHAIN");
+        string memory chain = vm.envString("CHAIN");
         ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
         address osirisContractAddress = config.callbackContract;
+        address callbackSender = config.callbackProxyContract;
 
         vm.startBroadcast();
         // Deploy the Callback contract on Arbitrum Sepolia
         Osiris osiris = Osiris(payable(osirisContractAddress));
-        osiris.callback();
+        osiris.callback(callbackSender);
         console.log("Paused CronReactive at address:", osirisContractAddress);
         vm.stopBroadcast();
     }

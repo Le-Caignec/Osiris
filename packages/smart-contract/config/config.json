@@ -20,14 +20,14 @@
             "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
             "usdc": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
             "callbackProxyContract":"0xc9f36411C9897e7F959D99ffca2a0Ba7ee0D7bDA",
-            "callbackContract":"0x9C4031fC80040b6ad84766405D611B5105D18e48"
+            "callbackContract":"0x5Cc66CD775c0aFd014AE196cEB1457EDfC78B1D5"
         },
         "lasna": {
-            "chainId": 5318008,
+            "chainId": 5318007,
             "rpcUrl": "https://lasna-rpc.rnk.dev/",
             "cronTopic":"0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687",
             "reactiveSystemContract":"0x0000000000000000000000000000000000fffFfF",
-            "reactiveContract":"0x0000000000000000000000000000000000fffFfF"
+            "reactiveContract":"0x6d96924C01F64C591c811111D08a836507Ab09A6"
         }
     }
 }

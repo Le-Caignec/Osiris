@@ -47,8 +47,8 @@ The smart contract package contains the core Osiris DCA logic and related contra
 See addresses in `packages/front/src/config/contracts.ts`:
 
 - **Sepolia Testnet**:
-  - Osiris Contract: `0x9C4031fC80040b6ad84766405D611B5105D18e48`
-  - Reactive Cron Contract: `...`
+  - Osiris Contract: [`0x5Cc66CD775c0aFd014AE196cEB1457EDfC78B1D5`](https://sepolia.etherscan.io/address/0x5Cc66CD775c0aFd014AE196cEB1457EDfC78B1D5)
+  - Reactive Cron Contract: [`0x6d96924C01F64C591c811111D08a836507Ab09A6`](https://lasna.reactscan.net/address/0x5104f76bce6e34f89227c6c570e61d06186b5724/contract/0x6d96924C01F64C591c811111D08a836507Ab09A6)
 
 ### Testing Setup
 

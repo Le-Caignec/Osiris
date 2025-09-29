@@ -40,7 +40,7 @@ interface IOsiris {
     function resumePlan() external;
 
     // CronReactive tick
-    function callback() external;
+    function callback(address sender) external;
 
     // View getters ajoutés
     function getTotalUsdc() external view returns (uint256);

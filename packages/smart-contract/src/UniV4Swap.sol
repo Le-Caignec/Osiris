@@ -103,9 +103,6 @@ contract UniV4Swap is ReentrancyGuard {
         return amountOut;
     }
 
-    // Accept native ETH (e.g., from PoolManager::take on native-out swaps)
-    receive() external payable {}
-
-    // Safety net for value transfers with non-empty calldata
-    fallback() external payable {}
+    /// @notice Receive function to accept native ETH transfers
+    receive() external payable virtual {}
 }

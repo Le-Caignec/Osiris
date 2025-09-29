@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Osiris} from "../../src/Osiris.sol";
+import {OsirisMock} from "./mocks/OsirisMock.sol";
 import {IOsiris} from "../../src/interfaces/IOsiris.sol";
 import {ConfigLib} from "../../script/lib/configLib.sol";
 import {UniV4SwapMock} from "./mocks/UniV4SwapMock.sol";
@@ -16,7 +16,7 @@ contract OsirisTest is Test {
     address private callbackSender;
 
     IERC20 private usdc;
-    Osiris private vault;
+    OsirisMock private vault;
     UniV4SwapMock private routerMock;
 
     address private alice = makeAddr("alice");
@@ -41,9 +41,10 @@ contract OsirisTest is Test {
         universalRouter = address(routerMock);
         permit2 = cfg.uniswapPermit2;
         usdcAddress = cfg.usdc;
+        callbackSender = cfg.callbackProxyContract;
 
         usdc = IERC20(usdcAddress);
-        vault = new Osiris(universalRouter, permit2, usdcAddress);
+        vault = new OsirisMock(universalRouter, permit2, usdcAddress, callbackSender);
 
         // labels for nicer traces
         vm.label(address(vault), "Osiris");
@@ -184,8 +185,12 @@ contract OsirisTest is Test {
         // Make both eligible
         vm.warp(block.timestamp + 2 days);
 
+        // Authorize test address for callback
+        vault.addAuthorizedSenderForTesting(address(this));
+        vault.setRvmIdForTesting(callbackSender);
+
         // Trigger
-        vault.callback();
+        vault.callback(callbackSender);
 
         // Expected pro-rata: totalIn = 40e6; alice gets 1e18 * 10/40, bob gets remainder
         uint256 expectedAlice = (1 ether * 10e6) / 40e6;
@@ -236,8 +241,12 @@ contract OsirisTest is Test {
         // Only Alice becomes eligible
         vm.warp(block.timestamp + 1 days + 1);
 
+        // Authorize test address for callback
+        vault.addAuthorizedSenderForTesting(address(this));
+        vault.setRvmIdForTesting(callbackSender);
+
         // Trigger
-        vault.callback();
+        vault.callback(callbackSender);
 
         // Alice should be able to claim full mocked output
         uint256 aliceEthBefore = alice.balance;
@@ -311,7 +320,12 @@ contract OsirisTest is Test {
         vm.stopPrank();
 
         vm.warp(block.timestamp + 2 days);
-        vault.callback();
+
+        // Authorize test address for callback
+        vault.addAuthorizedSenderForTesting(address(this));
+        vault.setRvmIdForTesting(address(0));
+
+        vault.callback(address(0));
 
         uint256 aliceExpected = (5 ether * 40e6) / 100e6;
         uint256 bobExpected = 5 ether - aliceExpected;
@@ -359,5 +373,52 @@ contract OsirisTest is Test {
         assertEq(uint8(resumedPlan.freq), uint8(IOsiris.Frequency.Weekly), "frequency should remain Weekly");
         assertEq(resumedPlan.amountPerPeriod, 25e6, "amount should remain 25e6");
         assertGt(resumedPlan.nextExecutionTimestamp, block.timestamp, "next execution should be scheduled");
+    }
+
+    // -----------------------------
+    // setPlan frequency change test
+    // -----------------------------
+    function test_setPlan_frequencyChangeUpdatesTimestamp() public {
+        // Set initial Daily plan
+        vm.prank(alice);
+        vault.setPlan(IOsiris.Frequency.Daily, 50e6);
+
+        IOsiris.DcaPlan memory dailyPlan = vault.getUserPlan(alice);
+        uint256 dailyTimestamp = dailyPlan.nextExecutionTimestamp;
+        assertEq(uint8(dailyPlan.freq), uint8(IOsiris.Frequency.Daily), "should be Daily");
+        assertGt(dailyTimestamp, block.timestamp, "daily timestamp should be in future");
+
+        // Wait some time
+        vm.warp(block.timestamp + 12 hours);
+
+        // Change to Weekly frequency
+        vm.prank(alice);
+        vault.setPlan(IOsiris.Frequency.Weekly, 50e6);
+
+        IOsiris.DcaPlan memory weeklyPlan = vault.getUserPlan(alice);
+        uint256 weeklyTimestamp = weeklyPlan.nextExecutionTimestamp;
+        assertEq(uint8(weeklyPlan.freq), uint8(IOsiris.Frequency.Weekly), "should be Weekly");
+
+        // The timestamp should be recalculated based on Weekly frequency (current time + 7 days)
+        uint256 expectedWeeklyTimestamp = block.timestamp + 7 days;
+        assertApproxEqAbs(weeklyTimestamp, expectedWeeklyTimestamp, 60, "weekly timestamp should be recalculated");
+        // The new timestamp should be different from the old one
+        assertTrue(weeklyTimestamp != dailyTimestamp, "timestamp should change when frequency changes");
+
+        // Change back to Monthly
+        vm.warp(block.timestamp + 1 days);
+
+        vm.prank(alice);
+        vault.setPlan(IOsiris.Frequency.Monthly, 50e6);
+
+        IOsiris.DcaPlan memory monthlyPlan = vault.getUserPlan(alice);
+        uint256 monthlyTimestamp = monthlyPlan.nextExecutionTimestamp;
+        assertEq(uint8(monthlyPlan.freq), uint8(IOsiris.Frequency.Monthly), "should be Monthly");
+
+        // The timestamp should be recalculated based on Monthly frequency (current time + 30 days)
+        uint256 expectedMonthlyTimestamp = block.timestamp + 30 days;
+        assertApproxEqAbs(monthlyTimestamp, expectedMonthlyTimestamp, 60, "monthly timestamp should be recalculated");
+        // The new timestamp should be different from the weekly one
+        assertTrue(monthlyTimestamp != weeklyTimestamp, "timestamp should change again when frequency changes");
     }
 }

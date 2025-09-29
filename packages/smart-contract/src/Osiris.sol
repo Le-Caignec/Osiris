@@ -10,10 +10,12 @@ import {UniV4Swap} from "./UniV4Swap.sol";
 import {IOsiris} from "./interfaces/IOsiris.sol";
 import {IUniV4Swap} from "./interfaces/IUniV4Swap.sol";
 import {DcaPlanLib} from "./lib/DcaPlanLib.sol";
-
+import {AbstractCallback} from "@reactive-contract/abstract-base/AbstractCallback.sol";
+import {AbstractPayer} from "@reactive-contract/abstract-base/AbstractPayer.sol";
 /// @title Osiris
 /// @notice Project renamed to Osiris; legacy name removed.
-contract Osiris is UniV4Swap, IOsiris {
+
+contract Osiris is UniV4Swap, IOsiris, AbstractCallback {
     using SafeERC20 for IERC20;
     using CurrencyLibrary for Currency;
 
@@ -38,7 +40,11 @@ contract Osiris is UniV4Swap, IOsiris {
         uint256 totalUsdc; // aggregate total of user USDC balances
     }
 
-    constructor(address _router, address _permit2, address _usdc) payable UniV4Swap(_router, _permit2) {
+    constructor(address _router, address _permit2, address _usdc, address _callbackSender)
+        payable
+        UniV4Swap(_router, _permit2)
+        AbstractCallback(_callbackSender)
+    {
         OsirisStorage storage $ = _getOsirisStorage();
         if (_usdc == address(0)) revert IOsiris.InvalidSwapRoute();
         $.usdc = IERC20(_usdc);
@@ -100,11 +106,19 @@ contract Osiris is UniV4Swap, IOsiris {
         if (amountPerPeriod > type(uint128).max) revert IOsiris.AmountTooLarge(); // bound cast
         OsirisStorage storage $ = _getOsirisStorage();
         IOsiris.DcaPlan storage selectedUserPlan = $.plans[msg.sender];
+
+        // Store the previous frequency to check if it changed
+        IOsiris.Frequency previousFreq = selectedUserPlan.freq;
         selectedUserPlan.freq = freq;
+
         // casting to 'uint128' is safe because we bounded amountPerPeriod above
         // forge-lint: disable-next-line(unsafe-typecast)
         selectedUserPlan.amountPerPeriod = uint128(amountPerPeriod);
-        if (selectedUserPlan.nextExecutionTimestamp == 0) {
+
+        // Update nextExecutionTimestamp if:
+        // 1. It's a new plan (timestamp == 0), OR
+        // 2. The frequency changed from the previous one
+        if (selectedUserPlan.nextExecutionTimestamp == 0 || previousFreq != freq) {
             selectedUserPlan.nextExecutionTimestamp = DcaPlanLib.nextExecutionAfter(block.timestamp, freq);
         }
         DcaPlanLib.ensureUserListed($.isUserListed, $.users, msg.sender);
@@ -135,7 +149,7 @@ contract Osiris is UniV4Swap, IOsiris {
     }
 
     /// @notice CronReactive tick entrypoint. Aggregates eligible users, swaps once, and distributes output.
-    function callback() external {
+    function callback(address sender) external authorizedSenderOnly rvmIdOnly(sender) {
         OsirisStorage storage $ = _getOsirisStorage();
 
         uint256 nbOfUser = $.users.length;
@@ -215,6 +229,9 @@ contract Osiris is UniV4Swap, IOsiris {
     function getUserPlan(address user) external view returns (IOsiris.DcaPlan memory) {
         return _getOsirisStorage().plans[user];
     }
+
+    /// @notice Override receive function to resolve inheritance conflict
+    receive() external payable override(AbstractPayer, UniV4Swap) {}
 
     function _getOsirisStorage() private pure returns (OsirisStorage storage $) {
         //slither-disable-start assembly
