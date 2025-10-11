@@ -10,7 +10,6 @@ interface IChainlinkOracle {
     // Custom errors
     error InvalidPrice();
     error PriceNotUpdated();
-    error PriceTooOld();
 
     // Events
     event PriceUpdated(uint256 ethUsdcPrice, uint256 timestamp);

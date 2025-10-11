@@ -116,7 +116,6 @@ contract ChainlinkOracle is IChainlinkOracle {
 
         if (answer <= 0) revert InvalidPrice();
         if (updatedAt == 0) revert PriceNotUpdated();
-        if (block.timestamp - updatedAt > 3600) revert PriceTooOld(); // 1 hour staleness check
 
         return answer;
     }

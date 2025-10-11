@@ -59,10 +59,10 @@ contract ChainlinkIntegrationTest is Test {
     function testPriceHistoryUpdate() public {
         // Test that price history gets updated when volatility is checked
         uint256 initialPrice = oracle.getEthUsdPrice();
-        
+
         // Call volatility check to trigger price history update
         oracle.volatilityCheck();
-        
+
         // Price should remain the same (or very close)
         uint256 updatedPrice = oracle.getEthUsdPrice();
         assertEq(initialPrice, updatedPrice, "Price should remain consistent");
@@ -70,12 +70,12 @@ contract ChainlinkIntegrationTest is Test {
 
     function testMultipleVolatilityChecks() public {
         // Test multiple volatility checks to build price history
-        for (uint i = 0; i < 3; i++) {
+        for (uint256 i = 0; i < 3; i++) {
             oracle.volatilityCheck();
             // Small delay to simulate different timestamps
             vm.warp(block.timestamp + 1);
         }
-        
+
         // Should not revert after multiple calls
         (, uint256 volatility) = oracle.volatilityCheck();
         assertGe(volatility, 0, "Volatility should be calculated after multiple updates");
