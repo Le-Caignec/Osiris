@@ -10,6 +10,8 @@ import {UniV4Swap} from "./UniV4Swap.sol";
 import {IOsiris} from "./interfaces/IOsiris.sol";
 import {IUniV4Swap} from "./interfaces/IUniV4Swap.sol";
 import {DcaPlanLib} from "./lib/DcaPlanLib.sol";
+import {IChainlinkOracle} from "./interfaces/IChainlinkOracle.sol";
+import {ChainlinkOracle} from "./ChainlinkOracle.sol";
 import {AbstractCallback} from "@reactive-contract/abstract-base/AbstractCallback.sol";
 import {AbstractPayer} from "@reactive-contract/abstract-base/AbstractPayer.sol";
 /// @title Osiris
@@ -38,9 +40,11 @@ contract Osiris is UniV4Swap, IOsiris, AbstractCallback {
         mapping(address => uint256) nativeBalance;
         mapping(address => IOsiris.DcaPlan) plans;
         uint256 totalUsdc; // aggregate total of user USDC balances
+        // Chainlink Oracle for price feeds and volatility
+        IChainlinkOracle oracle;
     }
 
-    constructor(address _router, address _permit2, address _usdc, address _callbackSender)
+    constructor(address _router, address _permit2, address _usdc, address _callbackSender, address _ethUsdFeed)
         payable
         UniV4Swap(_router, _permit2)
         AbstractCallback(_callbackSender)
@@ -56,6 +60,9 @@ contract Osiris is UniV4Swap, IOsiris, AbstractCallback {
             tickSpacing: 60,
             hooks: IHooks(address(0))
         });
+
+        // Initialize Chainlink Oracle
+        $.oracle = new ChainlinkOracle(_ethUsdFeed);
     }
 
     // ---------- Public getters to preserve interface ----------
@@ -98,10 +105,17 @@ contract Osiris is UniV4Swap, IOsiris, AbstractCallback {
         emit ClaimedNative(msg.sender, amount);
     }
 
-    /// @notice Create or update your DCA plan.
+    /// @notice Create or update your DCA plan with budget and volatility controls.
     /// @param freq execution frequency (Daily, Weekly, Monthly).
     /// @param amountPerPeriod USDC amount to DCA each period.
-    function setPlan(IOsiris.Frequency freq, uint256 amountPerPeriod) external {
+    /// @param maxBudgetPerExecution Maximum USD price per ETH that user is willing to pay (0 = no limit).
+    /// @param enableVolatilityFilter Whether to enable volatility filtering.
+    function setPlanWithBudget(
+        IOsiris.Frequency freq,
+        uint256 amountPerPeriod,
+        uint256 maxBudgetPerExecution,
+        bool enableVolatilityFilter
+    ) public {
         if (amountPerPeriod == 0) revert IOsiris.AmountZero();
         if (amountPerPeriod > type(uint128).max) revert IOsiris.AmountTooLarge(); // bound cast
         OsirisStorage storage $ = _getOsirisStorage();
@@ -114,6 +128,8 @@ contract Osiris is UniV4Swap, IOsiris, AbstractCallback {
         // casting to 'uint128' is safe because we bounded amountPerPeriod above
         // forge-lint: disable-next-line(unsafe-typecast)
         selectedUserPlan.amountPerPeriod = uint128(amountPerPeriod);
+        selectedUserPlan.maxBudgetPerExecution = maxBudgetPerExecution;
+        selectedUserPlan.enableVolatilityFilter = enableVolatilityFilter;
 
         // Update nextExecutionTimestamp if:
         // 1. It's a new plan (timestamp == 0), OR
@@ -148,9 +164,30 @@ contract Osiris is UniV4Swap, IOsiris, AbstractCallback {
         );
     }
 
+    /// @notice Check if current ETH price is within user's budget
+    /// @param user The user to check budget for
+    /// @return isWithinBudget True if current ETH price is within budget
+    function budgetCheck(address user) internal view returns (bool isWithinBudget) {
+        OsirisStorage storage $ = _getOsirisStorage();
+        IOsiris.DcaPlan storage plan = $.plans[user];
+
+        // If no budget limit set, always pass
+        if (plan.maxBudgetPerExecution == 0) return true;
+
+        // Get current ETH price in USD (scaled by 1e8)
+        uint256 ethUsdPrice = $.oracle.getEthUsdPrice();
+
+        // Check if current ETH price is below or equal to user's maximum price
+        // maxBudgetPerExecution is the maximum USD price per ETH the user is willing to pay
+        isWithinBudget = ethUsdPrice <= plan.maxBudgetPerExecution;
+    }
+
     /// @notice CronReactive tick entrypoint. Aggregates eligible users, swaps once, and distributes output.
     function callback(address sender) external authorizedSenderOnly rvmIdOnly(sender) {
         OsirisStorage storage $ = _getOsirisStorage();
+
+        // Get current volatility once for all users
+        (bool globalVolatilityOk, uint256 currentVolatility) = $.oracle.volatilityCheck();
 
         uint256 nbOfUser = $.users.length;
         if (nbOfUser == 0) return;
@@ -169,6 +206,26 @@ contract Osiris is UniV4Swap, IOsiris, AbstractCallback {
             if (selectedUserPlan.nextExecutionTimestamp != 0 && selectedUserPlan.nextExecutionTimestamp <= nowTs) {
                 uint256 amt = uint256(selectedUserPlan.amountPerPeriod);
                 if (amt > 0 && $.usdcBalance[selectedUser] >= amt) {
+                    // Check budget constraint
+                    bool budgetOk = budgetCheck(selectedUser);
+
+                    // Check volatility constraint (only if enabled for this user)
+                    bool volatilityOk = !selectedUserPlan.enableVolatilityFilter || globalVolatilityOk;
+
+                    // Log the execution attempt with detailed information
+                    emit DcaExecutionLog(selectedUser, amt, budgetOk, volatilityOk, currentVolatility, block.timestamp);
+
+                    if (!budgetOk) {
+                        emit DcaExecutionSkipped(selectedUser, "Budget exceeded", block.timestamp);
+                        continue;
+                    }
+
+                    if (!volatilityOk) {
+                        emit DcaExecutionSkipped(selectedUser, "High volatility", block.timestamp);
+                        continue;
+                    }
+
+                    // User passes all checks, add to eligible list
                     eligibleUsers[eligibleCount] = selectedUser;
                     eligibleAmounts[eligibleCount] = amt;
                     totalIn += amt;
@@ -228,6 +285,23 @@ contract Osiris is UniV4Swap, IOsiris, AbstractCallback {
 
     function getUserPlan(address user) external view returns (IOsiris.DcaPlan memory) {
         return _getOsirisStorage().plans[user];
+    }
+
+    /// @notice Get current ETH/USD price from Chainlink
+    function getCurrentEthUsdPrice() external view returns (uint256) {
+        return _getOsirisStorage().oracle.getEthUsdPrice();
+    }
+
+    /// @notice Get current volatility from Chainlink
+    function getCurrentVolatility() external returns (uint256) {
+        OsirisStorage storage $ = _getOsirisStorage();
+        (, uint256 volatility) = $.oracle.volatilityCheck();
+        return volatility;
+    }
+
+    /// @notice Get volatility threshold
+    function getVolatilityThreshold() external view returns (uint256) {
+        return _getOsirisStorage().oracle.volatilityThreshold();
     }
 
     /// @notice Override receive function to resolve inheritance conflict

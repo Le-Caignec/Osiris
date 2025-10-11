@@ -6,9 +6,9 @@ import {Osiris} from "../../../src/Osiris.sol";
 /// @title OsirisMock
 /// @notice Mock contract for testing purposes that extends Osiris with test-only functions
 contract OsirisMock is Osiris {
-    constructor(address _router, address _permit2, address _usdc, address _callbackSender)
+    constructor(address _router, address _permit2, address _usdc, address _callbackSender, address _ethUsdFeed)
         payable
-        Osiris(_router, _permit2, _usdc, _callbackSender)
+        Osiris(_router, _permit2, _usdc, _callbackSender, _ethUsdFeed)
     {}
 
     /// @notice Testing function to add authorized sender for test purposes
