@@ -52,8 +52,6 @@ export interface WalletContextType {
   pausePlan: () => Promise<TransactionResult>;
   resumePlan: () => Promise<TransactionResult>;
   approveUsdc: (amount: string) => Promise<TransactionResult>;
-  getCurrentEthUsdPrice: () => Promise<string>;
-  getCurrentVolatility: () => Promise<string>;
   isLoading: boolean;
   error: string | null;
 }

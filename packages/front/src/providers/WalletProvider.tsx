@@ -119,22 +119,6 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     watch: true,
   });
 
-  const { data: currentEthUsdPrice } = useContractRead({
-    address: contractAddresses.osiris as `0x${string}`,
-    abi: OSIRIS_ABI,
-    functionName: 'getCurrentEthUsdPrice',
-    enabled: isConnected,
-    watch: true,
-  });
-
-  const { data: currentVolatility } = useContractRead({
-    address: contractAddresses.osiris as `0x${string}`,
-    abi: OSIRIS_ABI,
-    functionName: 'getCurrentVolatility',
-    enabled: isConnected,
-    watch: true,
-  });
-
   // #########################################
   // Contract write functions
   // #########################################
@@ -385,16 +369,6 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
   console.log('parsed dcaPlan:', dcaPlan);
 
-  const getCurrentEthUsdPrice = async (): Promise<string> => {
-    if (!currentEthUsdPrice) return '0';
-    return formatUnits(currentEthUsdPrice, 8);
-  };
-
-  const getCurrentVolatility = async (): Promise<string> => {
-    if (!currentVolatility) return '0';
-    return (Number(currentVolatility) / 100).toFixed(2); // Convert basis points to percentage
-  };
-
   const value: WalletContextType = {
     address,
     isConnected,
@@ -408,8 +382,6 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     pausePlan,
     resumePlan,
     approveUsdc,
-    getCurrentEthUsdPrice,
-    getCurrentVolatility,
     isLoading: false, // TODO: Implement loading state
     error: null, // TODO: Implement error state
   };
