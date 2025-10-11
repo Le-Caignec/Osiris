@@ -4,6 +4,7 @@ import { useWallet } from '../providers/WalletProvider';
 import BalanceCard from './BalanceCard';
 import DcaPlanCard from './DcaPlanCard';
 import FundsCard from './FundsCard';
+import MarketInfo from './MarketInfo';
 
 const Dashboard: React.FC = () => {
   const { isConnected } = useWallet();
@@ -53,9 +54,10 @@ const Dashboard: React.FC = () => {
 
         {/* Main Content Grid */}
         <div className='grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6 lg:gap-8'>
-          {/* Left Column - Balances */}
-          <div className='xl:col-span-4 order-2 xl:order-1'>
+          {/* Left Column - Balances & Market Info */}
+          <div className='xl:col-span-4 order-2 xl:order-1 space-y-4 sm:space-y-6'>
             <BalanceCard />
+            <MarketInfo />
           </div>
 
           {/* Right Column - DCA Plan */}

@@ -67,6 +67,29 @@ export const OSIRIS_ABI = [
   },
   {
     type: 'event',
+    name: 'DcaExecutionSkipped',
+    inputs: [
+      { name: 'user', type: 'address', indexed: true },
+      { name: 'reason', type: 'string', indexed: false },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'DcaExecutionLog',
+    inputs: [
+      { name: 'user', type: 'address', indexed: true },
+      { name: 'timestamp', type: 'uint256', indexed: false },
+      { name: 'budgetCheck', type: 'bool', indexed: false },
+      { name: 'volatilityCheck', type: 'bool', indexed: false },
+      { name: 'swapExecuted', type: 'bool', indexed: false },
+      { name: 'amountIn', type: 'uint256', indexed: false },
+      { name: 'amountOut', type: 'uint256', indexed: false },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
     name: 'CallbackProcessed',
     inputs: [
       { name: 'usersProcessed', type: 'uint256', indexed: false },
@@ -97,6 +120,16 @@ export const OSIRIS_ABI = [
     name: 'AmountTooLarge',
     inputs: [],
   },
+  {
+    type: 'error',
+    name: 'BudgetExceeded',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'HighVolatility',
+    inputs: [],
+  },
 
   // User actions
   {
@@ -124,10 +157,12 @@ export const OSIRIS_ABI = [
   // Plan management
   {
     type: 'function',
-    name: 'setPlan',
+    name: 'setPlanWithBudget',
     inputs: [
       { name: 'freq', type: 'uint8' },
       { name: 'amountPerPeriod', type: 'uint256' },
+      { name: 'maxBudgetPerExecution', type: 'uint256' },
+      { name: 'enableVolatilityFilter', type: 'bool' },
     ],
     outputs: [],
     stateMutability: 'nonpayable',
@@ -190,9 +225,32 @@ export const OSIRIS_ABI = [
           { name: 'freq', type: 'uint8' },
           { name: 'amountPerPeriod', type: 'uint128' },
           { name: 'nextExecutionTimestamp', type: 'uint256' },
+          { name: 'maxBudgetPerExecution', type: 'uint256' },
+          { name: 'enableVolatilityFilter', type: 'bool' },
         ],
       },
     ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'getCurrentEthUsdPrice',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'getCurrentVolatility',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'getVolatilityThreshold',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
   },
 ] as const;
