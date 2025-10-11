@@ -7,12 +7,14 @@ const FundsCard: React.FC = () => {
   const [usdcWithdrawAmount, setUsdcWithdrawAmount] = useState('');
   const [usdcDepositAmount, setUsdcDepositAmount] = useState('');
   const [ethWithdrawAmount, setEthWithdrawAmount] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDepositLoading, setIsDepositLoading] = useState(false);
+  const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
+  const [isClaimLoading, setIsClaimLoading] = useState(false);
 
   const handleWithdrawUsdc = async () => {
     if (!isConnected || !usdcWithdrawAmount) return;
 
-    setIsLoading(true);
+    setIsWithdrawLoading(true);
     try {
       const result = await withdrawUsdc(usdcWithdrawAmount);
       if (result.status === 'success') {
@@ -21,14 +23,14 @@ const FundsCard: React.FC = () => {
     } catch (error) {
       console.error('Error withdrawing USDC:', error);
     } finally {
-      setIsLoading(false);
+      setIsWithdrawLoading(false);
     }
   };
 
   const handleDepositUsdc = async () => {
     if (!isConnected || !usdcDepositAmount) return;
 
-    setIsLoading(true);
+    setIsDepositLoading(true);
     try {
       const result = await depositUsdc(usdcDepositAmount);
       if (result.status === 'success') {
@@ -37,14 +39,14 @@ const FundsCard: React.FC = () => {
     } catch (error) {
       console.error('Error depositing USDC:', error);
     } finally {
-      setIsLoading(false);
+      setIsDepositLoading(false);
     }
   };
 
   const handleClaimEth = async () => {
     if (!isConnected || !ethWithdrawAmount) return;
 
-    setIsLoading(true);
+    setIsClaimLoading(true);
     try {
       const result = await claimNative(ethWithdrawAmount);
       if (result.status === 'success') {
@@ -53,7 +55,7 @@ const FundsCard: React.FC = () => {
     } catch (error) {
       console.error('Error claiming ETH:', error);
     } finally {
-      setIsLoading(false);
+      setIsClaimLoading(false);
     }
   };
 
@@ -140,10 +142,10 @@ const FundsCard: React.FC = () => {
             />
             <button
               onClick={handleDepositUsdc}
-              disabled={!usdcDepositAmount || isLoading}
+              disabled={!usdcDepositAmount || isDepositLoading}
               className='bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 w-full text-base mt-auto'
             >
-              {isLoading ? 'Processing...' : 'Deposit'}
+              {isDepositLoading ? 'Processing...' : 'Deposit'}
             </button>
           </div>
         </div>
@@ -190,12 +192,12 @@ const FundsCard: React.FC = () => {
               onClick={handleWithdrawUsdc}
               disabled={
                 !usdcWithdrawAmount ||
-                isLoading ||
+                isWithdrawLoading ||
                 parseFloat(usdcWithdrawAmount) > parseFloat(balances.userUsdc)
               }
               className='bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 w-full text-base mt-auto'
             >
-              {isLoading ? 'Processing...' : 'Withdraw'}
+              {isWithdrawLoading ? 'Processing...' : 'Withdraw'}
             </button>
           </div>
         </div>
@@ -242,12 +244,12 @@ const FundsCard: React.FC = () => {
               onClick={handleClaimEth}
               disabled={
                 !ethWithdrawAmount ||
-                isLoading ||
+                isClaimLoading ||
                 parseFloat(ethWithdrawAmount) > parseFloat(balances.userNative)
               }
               className='bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 w-full text-base mt-auto'
             >
-              {isLoading ? 'Processing...' : 'Claim'}
+              {isClaimLoading ? 'Processing...' : 'Claim'}
             </button>
           </div>
         </div>
