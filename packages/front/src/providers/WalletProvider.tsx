@@ -354,7 +354,8 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const dcaPlan: DcaPlan | null =
     userPlan &&
     userPlan.freq !== undefined &&
-    userPlan.amountPerPeriod !== undefined
+    userPlan.amountPerPeriod !== undefined &&
+    userPlan.amountPerPeriod > BigInt(0) // Only consider it a plan if amount > 0
       ? {
           frequency: userPlan.freq as Frequency,
           amountPerPeriod: formatUnits(userPlan.amountPerPeriod, 6), // USDC has 6 decimals
