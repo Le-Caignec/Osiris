@@ -1,15 +1,10 @@
 name: Smart Contract Default
 
 on:
-  push:
-    paths:
-      - 'packages/smart-contract/**'
-      - '.github/workflows/smart-contract-default.yml'
   pull_request:
     paths:
       - 'packages/smart-contract/**'
       - '.github/workflows/smart-contract-default.yml'
-  workflow_dispatch:
 
 env:
   FOUNDRY_PROFILE: ci
