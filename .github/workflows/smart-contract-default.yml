@@ -1,15 +1,10 @@
 name: Smart Contract Default
 
 on:
-  push:
-    paths:
-      - 'packages/smart-contract/**'
-      - '.github/workflows/smart-contract-default.yml'
   pull_request:
     paths:
       - 'packages/smart-contract/**'
       - '.github/workflows/smart-contract-default.yml'
-  workflow_dispatch:
 
 env:
   FOUNDRY_PROFILE: ci
@@ -28,20 +23,18 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Show Forge version
         run: |
           forge --version
 
       - name: Run Forge fmt
-        run: |
-          forge fmt --check
-        id: fmt
+        run: forge fmt --check
 
       - name: Run Forge build
-        run: |
-          forge build --sizes
-        id: build
+        run: forge build --sizes
 
       - name: Run Unit Tests
         run: make test-unit

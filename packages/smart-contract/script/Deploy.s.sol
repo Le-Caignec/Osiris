@@ -31,11 +31,13 @@ contract DeployOsiris is Script {
         address permit2 = config.uniswapPermit2;
         address usdc = config.usdc;
         address callbackSender = config.callbackProxyContract;
+        address ethUsdFeed = config.chainlinkEthUsdFeed;
 
         vm.startBroadcast();
-        // Deploy the Osiris contract on Sepolia/Ethereum
-        Osiris osirisContract = new Osiris{value: 0.01 ether}(universalRouter, permit2, usdc, callbackSender);
-        console.log("Osiris Contract Address (Sepolia):", address(osirisContract));
+        // Deploy the Osiris contract with Chainlink integration
+        Osiris osirisContract =
+            new Osiris{value: 0.01 ether}(universalRouter, permit2, usdc, callbackSender, ethUsdFeed);
+        console.log("Osiris Contract Address:", address(osirisContract));
         vm.stopBroadcast();
     }
 }

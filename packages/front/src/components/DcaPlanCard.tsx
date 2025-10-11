@@ -3,7 +3,8 @@ import { useWallet } from '../providers/WalletProvider';
 import { format } from 'date-fns';
 
 const DcaPlanCard: React.FC = () => {
-  const { isConnected, dcaPlan, setPlan, pausePlan, resumePlan } = useWallet();
+  const { isConnected, dcaPlan, setPlanWithBudget, pausePlan, resumePlan } =
+    useWallet();
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -11,13 +12,24 @@ const DcaPlanCard: React.FC = () => {
   const [editAmount, setEditAmount] = useState(
     dcaPlan?.amountPerPeriod || '50'
   );
+  const [editMaxBudget, setEditMaxBudget] = useState(
+    dcaPlan?.maxBudgetPerExecution || '0'
+  );
+  const [editVolatilityFilter, setEditVolatilityFilter] = useState(
+    dcaPlan?.enableVolatilityFilter || false
+  );
 
   const handleCreatePlan = async () => {
     if (!isConnected) return;
 
     setIsLoading(true);
     try {
-      const result = await setPlan(editFrequency, editAmount);
+      const result = await setPlanWithBudget(
+        editFrequency,
+        editAmount,
+        editMaxBudget,
+        editVolatilityFilter
+      );
       if (result.status === 'success') {
         setIsCreating(false);
       }
@@ -33,7 +45,12 @@ const DcaPlanCard: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const result = await setPlan(editFrequency, editAmount);
+      const result = await setPlanWithBudget(
+        editFrequency,
+        editAmount,
+        editMaxBudget,
+        editVolatilityFilter
+      );
       if (result.status === 'success') {
         setIsEditing(false);
       }
@@ -91,11 +108,11 @@ const DcaPlanCard: React.FC = () => {
 
   if (!dcaPlan) {
     return (
-      <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700 shadow-xl'>
+      <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700 shadow-xl flex flex-col h-full min-h-[600px]'>
         <div className='flex items-center space-x-3 mb-6'>
-          <div className='w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center'>
+          <div className='w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center'>
             <svg
-              className='w-6 h-6 text-white'
+              className='w-5 h-5 text-white'
               fill='none'
               stroke='currentColor'
               viewBox='0 0 24 24'
@@ -108,15 +125,15 @@ const DcaPlanCard: React.FC = () => {
               />
             </svg>
           </div>
-          <h3 className='text-2xl font-bold text-white'>DCA Plan</h3>
+          <h3 className='text-xl font-bold text-white'>DCA Plan</h3>
         </div>
 
         {isCreating ? (
-          <div className='space-y-4 sm:space-y-6 flex flex-col justify-center flex-1'>
-            <div className='text-center mb-6 sm:mb-8'>
-              <div className='w-12 h-12 sm:w-16 sm:h-16 bg-primary-600/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4'>
+          <div className='space-y-4 flex flex-col flex-1'>
+            <div className='text-center mb-4'>
+              <div className='w-12 h-12 bg-primary-600/20 rounded-full flex items-center justify-center mx-auto mb-3'>
                 <svg
-                  className='w-6 h-6 sm:w-8 sm:h-8 text-primary-400'
+                  className='w-6 h-6 text-primary-400'
                   fill='none'
                   stroke='currentColor'
                   viewBox='0 0 24 24'
@@ -129,23 +146,23 @@ const DcaPlanCard: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h4 className='text-xl sm:text-2xl font-semibold text-white mb-2 sm:mb-3'>
+              <h4 className='text-xl font-semibold text-white mb-2'>
                 Create DCA Plan
               </h4>
-              <p className='text-gray-400 text-sm sm:text-base lg:text-lg'>
+              <p className='text-gray-400 text-sm'>
                 Set up your automated investment strategy
               </p>
             </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6'>
+            <div className='grid grid-cols-2 gap-3'>
               <div>
-                <label className='block text-xs sm:text-sm font-medium text-gray-300 mb-2 sm:mb-3'>
+                <label className='block text-sm font-medium text-gray-300 mb-2'>
                   Frequency
                 </label>
                 <select
                   value={editFrequency}
                   onChange={e => setEditFrequency(Number(e.target.value))}
-                  className='w-full bg-gray-700 text-white rounded-xl p-3 sm:p-4 border border-gray-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 text-sm sm:text-base'
+                  className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 text-sm'
                 >
                   <option value={0}>Daily</option>
                   <option value={1}>Weekly</option>
@@ -154,40 +171,79 @@ const DcaPlanCard: React.FC = () => {
               </div>
 
               <div>
-                <label className='block text-xs sm:text-sm font-medium text-gray-300 mb-2 sm:mb-3'>
-                  Amount per period (USDC)
+                <label className='block text-sm font-medium text-gray-300 mb-2'>
+                  Amount (USDC)
                 </label>
                 <input
                   type='number'
                   value={editAmount}
                   onChange={e => setEditAmount(e.target.value)}
-                  className='w-full bg-gray-700 text-white rounded-xl p-3 sm:p-4 border border-gray-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 text-sm sm:text-base'
-                  placeholder='Enter amount'
+                  className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 text-sm'
+                  placeholder='50'
                 />
               </div>
             </div>
 
-            <div className='flex flex-col sm:flex-row gap-2 sm:gap-3'>
+            {/* Budget Protection */}
+            <div>
+              <label className='block text-sm font-medium text-gray-300 mb-2'>
+                Max ETH Price (USD)
+              </label>
+              <input
+                type='number'
+                value={editMaxBudget}
+                onChange={e => setEditMaxBudget(e.target.value)}
+                className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 text-sm'
+                placeholder='3000 (0 = no limit)'
+              />
+              <p className='text-xs text-gray-400 mt-1'>
+                Maximum USD price per ETH. Leave 0 for no limit.
+              </p>
+            </div>
+
+            {/* Volatility Filter */}
+            <div>
+              <div className='flex items-center space-x-3 p-3 bg-gray-700/50 rounded-lg border border-gray-600'>
+                <input
+                  type='checkbox'
+                  id='volatilityFilter'
+                  checked={editVolatilityFilter}
+                  onChange={e => setEditVolatilityFilter(e.target.checked)}
+                  className='w-4 h-4 text-primary-600 bg-gray-700 border-gray-600 rounded focus:ring-primary-500 focus:ring-2'
+                />
+                <label
+                  htmlFor='volatilityFilter'
+                  className='text-gray-300 text-sm'
+                >
+                  Skip execution during high volatility
+                </label>
+              </div>
+              <p className='text-xs text-gray-400 mt-1'>
+                Skip DCA if market volatility exceeds 5%.
+              </p>
+            </div>
+
+            <div className='flex gap-3 mt-auto'>
               <button
                 onClick={() => setIsCreating(false)}
-                className='flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white py-3 sm:py-4 rounded-xl font-semibold transition-all duration-200 text-sm sm:text-base'
+                className='flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white py-3 rounded-lg font-semibold transition-all duration-200 text-sm'
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreatePlan}
                 disabled={isLoading || !editAmount}
-                className='flex-1 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white py-3 sm:py-4 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 text-sm sm:text-base'
+                className='flex-1 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all duration-200 text-sm'
               >
                 {isLoading ? 'Creating...' : 'Create Plan'}
               </button>
             </div>
           </div>
         ) : (
-          <div className='text-center py-8 sm:py-12 flex flex-col justify-center items-center flex-1'>
-            <div className='w-16 h-16 sm:w-20 sm:h-20 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6'>
+          <div className='text-center flex flex-col justify-center items-center flex-1'>
+            <div className='w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-6'>
               <svg
-                className='w-8 h-8 sm:w-10 sm:h-10 text-gray-400'
+                className='w-8 h-8 text-gray-400'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -200,15 +256,15 @@ const DcaPlanCard: React.FC = () => {
                 />
               </svg>
             </div>
-            <h4 className='text-xl sm:text-2xl font-semibold text-white mb-2 sm:mb-3'>
+            <h4 className='text-xl font-semibold text-white mb-3'>
               No active DCA plan found
             </h4>
-            <p className='text-gray-400 text-sm sm:text-base lg:text-lg mb-6 sm:mb-8 max-w-md'>
+            <p className='text-gray-400 text-base mb-8 max-w-md'>
               Create a plan to start automated investing
             </p>
             <button
               onClick={() => setIsCreating(true)}
-              className='bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-200 transform hover:scale-105'
+              className='bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-6 py-3 rounded-xl font-semibold text-base transition-all duration-200 transform hover:scale-105'
             >
               Create DCA Plan
             </button>
@@ -237,12 +293,12 @@ const DcaPlanCard: React.FC = () => {
   };
 
   return (
-    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col h-full'>
-      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4 sm:gap-0'>
+    <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col h-full min-h-[600px]'>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 sm:gap-0'>
         <div className='flex items-center space-x-3'>
-          <div className='w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center flex-shrink-0'>
+          <div className='w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center flex-shrink-0'>
             <svg
-              className='w-5 h-5 sm:w-6 sm:h-6 text-white'
+              className='w-5 h-5 text-white'
               fill='none'
               stroke='currentColor'
               viewBox='0 0 24 24'
@@ -255,7 +311,7 @@ const DcaPlanCard: React.FC = () => {
               />
             </svg>
           </div>
-          <h3 className='text-xl sm:text-2xl font-bold text-white'>DCA Plan</h3>
+          <h3 className='text-xl font-bold text-white'>DCA Plan</h3>
         </div>
         <div className='flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-3'>
           <div
@@ -311,6 +367,50 @@ const DcaPlanCard: React.FC = () => {
                 placeholder='Enter amount'
               />
             </div>
+          </div>
+
+          {/* Budget Protection */}
+          <div className='space-y-2'>
+            <label className='block text-xs sm:text-sm font-medium text-gray-300 mb-2 sm:mb-3'>
+              Maximum ETH Price (USD)
+            </label>
+            <input
+              type='number'
+              value={editMaxBudget}
+              onChange={e => setEditMaxBudget(e.target.value)}
+              className='w-full bg-gray-700 text-white rounded-xl p-3 sm:p-4 border border-gray-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 text-sm sm:text-base'
+              placeholder='3000 (leave 0 for no limit)'
+            />
+            <p className='text-xs text-gray-400'>
+              Maximum USD price per ETH you're willing to pay. Leave 0 for no
+              limit.
+            </p>
+          </div>
+
+          {/* Volatility Filter */}
+          <div className='space-y-2'>
+            <label className='block text-xs sm:text-sm font-medium text-gray-300 mb-2 sm:mb-3'>
+              Volatility Protection
+            </label>
+            <div className='flex items-center space-x-3'>
+              <input
+                type='checkbox'
+                id='volatilityFilterEdit'
+                checked={editVolatilityFilter}
+                onChange={e => setEditVolatilityFilter(e.target.checked)}
+                className='w-4 h-4 text-primary-600 bg-gray-700 border-gray-600 rounded focus:ring-primary-500 focus:ring-2'
+              />
+              <label
+                htmlFor='volatilityFilterEdit'
+                className='text-gray-300 text-sm'
+              >
+                Skip execution during high volatility periods
+              </label>
+            </div>
+            <p className='text-xs text-gray-400'>
+              When enabled, DCA execution will be skipped if market volatility
+              exceeds 5%.
+            </p>
           </div>
 
           <div className='flex space-x-2 sm:space-x-3'>
@@ -375,6 +475,60 @@ const DcaPlanCard: React.FC = () => {
               </div>
               <span className='text-white font-bold text-base sm:text-lg'>
                 ${parseFloat(dcaPlan.amountPerPeriod).toFixed(2)} USDC
+              </span>
+            </div>
+
+            <div className='bg-gray-700/50 rounded-xl p-3 sm:p-4 hover:bg-gray-700/70 transition-colors duration-200'>
+              <div className='flex items-center space-x-2 sm:space-x-3 mb-2'>
+                <div className='w-6 h-6 sm:w-8 sm:h-8 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0'>
+                  <svg
+                    className='w-3 h-3 sm:w-4 sm:h-4 text-white'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1'
+                    />
+                  </svg>
+                </div>
+                <span className='text-gray-300 font-medium text-sm sm:text-base'>
+                  Max ETH Price
+                </span>
+              </div>
+              <span className='text-white font-bold text-base sm:text-lg'>
+                {parseFloat(dcaPlan.maxBudgetPerExecution) === 0
+                  ? 'No Limit'
+                  : `$${parseFloat(dcaPlan.maxBudgetPerExecution).toFixed(0)}`}
+              </span>
+            </div>
+
+            <div className='bg-gray-700/50 rounded-xl p-3 sm:p-4 hover:bg-gray-700/70 transition-colors duration-200'>
+              <div className='flex items-center space-x-2 sm:space-x-3 mb-2'>
+                <div className='w-6 h-6 sm:w-8 sm:h-8 bg-red-600 rounded-lg flex items-center justify-center flex-shrink-0'>
+                  <svg
+                    className='w-3 h-3 sm:w-4 sm:h-4 text-white'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M13 10V3L4 14h7v7l9-11h-7z'
+                    />
+                  </svg>
+                </div>
+                <span className='text-gray-300 font-medium text-sm sm:text-base'>
+                  Volatility Filter
+                </span>
+              </div>
+              <span className='text-white font-bold text-base sm:text-lg'>
+                {dcaPlan.enableVolatilityFilter ? 'Enabled' : 'Disabled'}
               </span>
             </div>
 

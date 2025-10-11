@@ -27,6 +27,8 @@ library ConfigLib {
         // Callback specific
         address callbackProxyContract;
         address callbackContract;
+        // Chainlink specific
+        address chainlinkEthUsdFeed;
     }
 
     function readDestinationNetworkConfig(string memory chain)
@@ -46,6 +48,7 @@ library ConfigLib {
         a.uniswapPermit2 = json.readAddress(string.concat(prefix, ".uniswapPermit2"));
         a.callbackProxyContract = json.readAddress(string.concat(prefix, ".callbackProxyContract"));
         a.callbackContract = json.readAddress(string.concat(prefix, ".callbackContract"));
+        a.chainlinkEthUsdFeed = json.readAddress(string.concat(prefix, ".chainlinkEthUsdFeed"));
     }
 
     // Reads the reactive addresses for the "lasna" chain

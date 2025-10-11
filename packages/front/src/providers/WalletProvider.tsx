@@ -20,41 +20,9 @@ import {
   USDC_ABI,
   Frequency,
 } from '../config/contracts';
+import { WalletContextType, DcaPlan, TransactionResult } from '../types';
 
-interface TransactionResult {
-  hash: string;
-  status: 'pending' | 'success' | 'error';
-  error?: any;
-}
-
-interface WalletContextType {
-  address: string | undefined;
-  isConnected: boolean;
-  chainId: number | undefined;
-  balances: {
-    eth: string;
-    usdc: string;
-    vaultUsdc: string;
-    userUsdc: string;
-    userNative: string;
-  };
-  dcaPlan: {
-    frequency: Frequency;
-    amountPerPeriod: string;
-    nextExecutionTimestamp: number;
-    isActive: boolean;
-  } | null;
-  depositUsdc: (amount: string) => Promise<TransactionResult>;
-  withdrawUsdc: (amount: string) => Promise<TransactionResult>;
-  claimNative: (amount: string) => Promise<TransactionResult>;
-  setPlan: (
-    frequency: Frequency,
-    amountPerPeriod: string
-  ) => Promise<TransactionResult>;
-  pausePlan: () => Promise<TransactionResult>;
-  resumePlan: () => Promise<TransactionResult>;
-  approveUsdc: (amount: string) => Promise<TransactionResult>;
-}
+// Using imported WalletContextType from types file
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
@@ -172,10 +140,10 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     functionName: 'claimNative',
   });
 
-  const { writeAsync: setPlanWrite } = useContractWrite({
+  const { writeAsync: setPlanWithBudgetWrite } = useContractWrite({
     address: contractAddresses.osiris as `0x${string}`,
     abi: OSIRIS_ABI,
-    functionName: 'setPlan',
+    functionName: 'setPlanWithBudget',
   });
 
   const { writeAsync: pausePlanWrite } = useContractWrite({
@@ -274,14 +242,24 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
 
-  const setPlan = async (
+  const setPlanWithBudget = async (
     frequency: Frequency,
-    amountPerPeriod: string
+    amountPerPeriod: string,
+    maxBudgetPerExecution: string,
+    enableVolatilityFilter: boolean
   ): Promise<TransactionResult> => {
     // Convert to USDC amount (6 decimals)
     const amountWei = parseUnits(amountPerPeriod, 6);
+    // Convert budget to wei (18 decimals for ETH price in USD)
+    const budgetWei =
+      maxBudgetPerExecution === '0'
+        ? BigInt(0)
+        : parseUnits(maxBudgetPerExecution, 8);
+
     try {
-      const result = await setPlanWrite({ args: [frequency, amountWei] });
+      const result = await setPlanWithBudgetWrite({
+        args: [frequency, amountWei, budgetWei, enableVolatilityFilter],
+      });
       return {
         hash: result.hash,
         status: 'success',
@@ -373,7 +351,7 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   // Debug logging
   console.log('userPlan data:', userPlan);
 
-  const dcaPlan =
+  const dcaPlan: DcaPlan | null =
     userPlan &&
     userPlan.freq !== undefined &&
     userPlan.amountPerPeriod !== undefined
@@ -381,6 +359,10 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           frequency: userPlan.freq as Frequency,
           amountPerPeriod: formatUnits(userPlan.amountPerPeriod, 6), // USDC has 6 decimals
           nextExecutionTimestamp: Number(userPlan.nextExecutionTimestamp),
+          maxBudgetPerExecution: userPlan.maxBudgetPerExecution
+            ? formatUnits(userPlan.maxBudgetPerExecution, 8) // ETH price in USD has 8 decimals
+            : '0',
+          enableVolatilityFilter: userPlan.enableVolatilityFilter || false,
           isActive: Number(userPlan.nextExecutionTimestamp) > 0,
         }
       : null;
@@ -396,10 +378,12 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     depositUsdc,
     withdrawUsdc,
     claimNative,
-    setPlan,
+    setPlanWithBudget,
     pausePlan,
     resumePlan,
     approveUsdc,
+    isLoading: false, // TODO: Implement loading state
+    error: null, // TODO: Implement error state
   };
 
   return (

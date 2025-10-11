@@ -28,3 +28,6 @@
 [submodule "packages/smart-contract/lib/solmate"]
 	path = packages/smart-contract/lib/solmate
 	url = https://github.com/transmissions11/solmate
+[submodule "packages/smart-contract/lib/chainlink-brownie-contracts"]
+	path = packages/smart-contract/lib/chainlink-brownie-contracts
+	url = https://github.com/smartcontractkit/chainlink-brownie-contracts

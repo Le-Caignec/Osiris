@@ -8,9 +8,11 @@ interface CreateDcaModalProps {
 }
 
 const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
-  const { isConnected, setPlan } = useWallet();
+  const { isConnected, setPlanWithBudget } = useWallet();
   const [amountPerBuy, setAmountPerBuy] = useState('50');
   const [frequency, setFrequency] = useState<Frequency>(Frequency.Weekly);
+  const [maxBudgetPerExecution, setMaxBudgetPerExecution] = useState('0');
+  const [enableVolatilityFilter, setEnableVolatilityFilter] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [transactionResult, setTransactionResult] = useState<{
     hash: string;
@@ -24,7 +26,12 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
     setTransactionResult(null);
 
     try {
-      const result = await setPlan(frequency, amountPerBuy);
+      const result = await setPlanWithBudget(
+        frequency,
+        amountPerBuy,
+        maxBudgetPerExecution,
+        enableVolatilityFilter
+      );
       setTransactionResult({ hash: result.hash, status: result.status });
 
       if (result.status === 'success') {
@@ -128,6 +135,52 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
                 />
               </svg>
             </div>
+          </div>
+
+          {/* Budget Protection */}
+          <div className='space-y-2'>
+            <label className='text-gray-300 text-sm font-medium'>
+              Maximum ETH Price (USD)
+            </label>
+            <div className='space-y-2'>
+              <input
+                type='number'
+                value={maxBudgetPerExecution}
+                onChange={e => setMaxBudgetPerExecution(e.target.value)}
+                className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600 focus:border-primary-500 focus:outline-none'
+                placeholder='3000 (leave 0 for no limit)'
+              />
+              <p className='text-xs text-gray-400'>
+                Maximum USD price per ETH you're willing to pay. Leave 0 for no
+                limit.
+              </p>
+            </div>
+          </div>
+
+          {/* Volatility Filter */}
+          <div className='space-y-2'>
+            <label className='text-gray-300 text-sm font-medium'>
+              Volatility Protection
+            </label>
+            <div className='flex items-center space-x-3'>
+              <input
+                type='checkbox'
+                id='volatilityFilter'
+                checked={enableVolatilityFilter}
+                onChange={e => setEnableVolatilityFilter(e.target.checked)}
+                className='w-4 h-4 text-primary-600 bg-gray-700 border-gray-600 rounded focus:ring-primary-500 focus:ring-2'
+              />
+              <label
+                htmlFor='volatilityFilter'
+                className='text-gray-300 text-sm'
+              >
+                Skip execution during high volatility periods
+              </label>
+            </div>
+            <p className='text-xs text-gray-400'>
+              When enabled, DCA execution will be skipped if market volatility
+              exceeds 5%.
+            </p>
           </div>
 
           <div className='flex space-x-3'>

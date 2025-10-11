@@ -27,18 +27,20 @@ The smart contract package contains the core Osiris DCA logic and related contra
 
 ## Overview
 
-- Deposit: Each user credits their internal USDC balance.  
-- Plan: Defines frequency (Daily / Weekly / Monthly) and amount per period.  
-- Execution: The callback() aggregates eligible users, performs a single USDC → Native swap, and distributes the output pro-rata.  
-- Claim: Users call claimNative(amount) to receive their native tokens.  
-- Pause/Resume: Users can suspend or resume their plan without losing history or balances.
+- **Deposit**: Each user credits their internal USDC balance.  
+- **Plan**: Defines frequency (Daily / Weekly / Monthly), amount per period, budget limits, and volatility filtering.  
+- **Budget Protection**: Users can set maximum USD price per ETH they're willing to pay.  
+- **Volatility Filtering**: Optional protection against executing DCA during high market volatility.  
+- **Execution**: The callback() aggregates eligible users, performs a single USDC → Native swap, and distributes the output pro-rata.  
+- **Claim**: Users call claimNative(amount) to receive their native tokens.  
+- **Pause/Resume**: Users can suspend or resume their plan without losing history or balances.
 
 ---
 
 ## Networks
 
-- Reactive Mainnet: CronReactive triggers the Osiris callback.
-- Ethereum Mainnet: Osiris contract, Uniswap v4 Router, Permit2, USDC, ETH.
+- **Reactive Mainnet**: CronReactive triggers the Osiris callback.
+- **Ethereum Mainnet**: Osiris contract, Uniswap v4 Router, Permit2, USDC, ETH, Chainlink price feeds.
 
 ---
 
@@ -47,8 +49,8 @@ The smart contract package contains the core Osiris DCA logic and related contra
 See addresses in `packages/front/src/config/contracts.ts`:
 
 - **Sepolia Testnet**:
-  - Osiris Contract: [`0x5Cc66CD775c0aFd014AE196cEB1457EDfC78B1D5`](https://sepolia.etherscan.io/address/0x5Cc66CD775c0aFd014AE196cEB1457EDfC78B1D5)
-  - Reactive Cron Contract: [`0x6d96924C01F64C591c811111D08a836507Ab09A6`](https://lasna.reactscan.net/address/0x5104f76bce6e34f89227c6c570e61d06186b5724/contract/0x6d96924C01F64C591c811111D08a836507Ab09A6)
+  - Osiris Contract: [`0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7`](https://sepolia.etherscan.io/address/0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7)
+  - Reactive Cron Contract: [`0xc14Ce8A395c2Bfd73977277eC3e8bDF584912F56`](https://lasna.reactscan.net/address/0x5104f76bce6e34f89227c6c570e61d06186b5724/contract/0xc14ce8a395c2bfd73977277ec3e8bdf584912f56)
 
 ### Testing Setup
 
@@ -82,13 +84,27 @@ To use Osiris on mainnet:
 
 ## Main API (Osiris contract)
 
+### User Actions
+
 - `depositUsdc(amount)`: Deposit USDC (requires prior approval).  
 - `withdrawUsdc(amount)`: Withdraw USDC from internal balance.  
-- `setPlan(freq, amountPerPeriod)`: Create or update a DCA plan.  
+- `claimNative(amount)`: Claim accumulated native tokens.  
+
+### Plan Management
+
+- `setPlanWithBudget(freq, amountPerPeriod, maxBudgetPerExecution, enableVolatilityFilter)`: Create or update a DCA plan with budget and volatility controls.
 - `pausePlan()`: Pause a plan (disables execution).  
 - `resumePlan()`: Resume a plan (reschedules next execution).  
-- `claimNative(amount)`: Claim accumulated native tokens.  
+
+### System Functions
+
 - `callback()`: Aggregates eligible users, executes the swap, distributes pro-rata.
+
+### Price & Volatility Queries
+
+- `getCurrentEthUsdPrice()`: Get current ETH/USD price from Chainlink.
+- `getCurrentVolatility()`: Get current market volatility.
+- `getVolatilityThreshold()`: Get volatility threshold setting.
 
 ---
 
@@ -167,11 +183,14 @@ flowchart LR
         U4[Uniswap v4 Router]
         P2[Permit2]
         T[USDC ERC20]
+        CL[Chainlink Oracle]
     end
 
     U[User] -->|approve + deposit USDC| V
-    U -->|setPlan| V
+    U -->|setPlanWithBudget| V
     CR -- trigger callback --> V
+    V -->|check price & volatility| CL
+    CL -->|ETH/USD price| V
     V -->|approve via Permit2| P2
     V -->|swap USDC → Native| U4
     U4 -->|send Native| V
@@ -186,19 +205,26 @@ sequenceDiagram
     participant U as User
     participant CR as CronReactive (Reactive)
     participant V as Osiris
+    participant CL as Chainlink Oracle
     participant P2 as Permit2
     participant U4 as Uniswap v4 Router
 
     U->>V: depositUsdc(amount)
-    U->>V: setPlan(freq, amountPerPeriod)
+    U->>V: setPlanWithBudget(freq, amount, maxPrice, volatilityFilter)
 
     rect rgb(245,245,245)
     Note over CR,V: Periodic trigger
     CR-->>V: call callback()
-    V->>P2: approve via Permit2
-    V->>U4: swap USDC → Native
-    U4-->>V: native returned
-    V->>V: pro-rata distribution & schedule update
+    V->>CL: getEthUsdPrice() & volatilityCheck()
+    CL-->>V: current price & volatility
+    alt Budget & Volatility OK
+        V->>P2: approve via Permit2
+        V->>U4: swap USDC → Native
+        U4-->>V: native returned
+        V->>V: pro-rata distribution & schedule update
+    else Budget/Volatility Check Failed
+        V->>V: skip execution, log reason
+    end
     end
 
     U->>V: claimNative(amount)

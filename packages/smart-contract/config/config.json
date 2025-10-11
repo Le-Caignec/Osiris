@@ -9,7 +9,8 @@
             "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
             "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
             "callbackProxyContract":"0x1D5267C1bb7D8bA68964dDF3990601BDB7902D76",
-            "callbackContract":"0x0000000000000000000000000000000000000000"
+            "callbackContract": "0x0000000000000000000000000000000000000000",
+            "chainlinkEthUsdFeed": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
         },
         "sepolia": {
             "chainId": 11155111,
@@ -20,14 +21,15 @@
             "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
             "usdc": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
             "callbackProxyContract":"0xc9f36411C9897e7F959D99ffca2a0Ba7ee0D7bDA",
-            "callbackContract":"0x5Cc66CD775c0aFd014AE196cEB1457EDfC78B1D5"
+            "callbackContract": "0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7",
+            "chainlinkEthUsdFeed": "0x694AA1769357215DE4FAC081bf1f309aDC325306"
         },
         "lasna": {
             "chainId": 5318007,
             "rpcUrl": "https://lasna-rpc.rnk.dev/",
             "cronTopic":"0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687",
             "reactiveSystemContract":"0x0000000000000000000000000000000000fffFfF",
-            "reactiveContract":"0x6d96924C01F64C591c811111D08a836507Ab09A6"
+            "reactiveContract":"0xc14Ce8A395c2Bfd73977277eC3e8bDF584912F56"
         }
     }
 }

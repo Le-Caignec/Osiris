@@ -24,18 +24,6 @@ deploy-reactive:
 		--verifier-url $(LASNA_VERIFIER_URL) \
 		-vvv
 
-# TODO: To remove
-deploy-callback:
-	# Deploy to Ethereum/Sepolia (Callback Contracts)
-	forge script script/Deploy.s.sol:DeployCallback \
-		--rpc-url $(RPC_URL) \
-		--account $(ACCOUNT) \
-		--broadcast \
-		--verify \
-		--verifier etherscan \
-		--verifier-api-key $(ETHERSCAN_API_KEY) \
-		-vvv
-
 deploy-osiris:
 	# Deploy to Ethereum/Sepolia (Swap Contracts)
 	forge script script/Deploy.s.sol:DeployOsiris \
