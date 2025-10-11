@@ -165,40 +165,71 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   });
 
   const depositUsdc = async (amount: string): Promise<TransactionResult> => {
-    // Convert to USDC amount (6 decimals)
     const amountWei = parseUnits(amount, 6);
 
     if (!balancesReady) {
       throw new Error('Balances are still loading. Please wait a moment…');
     }
 
-    // Check if user has enough USDC balance
     if (usdcBalance && usdcBalance.value < amountWei) {
       console.error('Insufficient USDC balance', usdcBalance, amountWei);
       throw new Error('Insufficient USDC balance');
     }
 
+    if (!publicClient) throw new Error('No public client available');
+
     try {
       // 1) Approve USDC spending
-      const approveTx = await approveUsdcWrite({
+      const approveTxHash = await approveUsdcWrite({
         args: [contractAddresses.osiris as `0x${string}`, amountWei],
       });
 
-      // 2) Wait for approval confirmation
-      if (!publicClient) throw new Error('No public client available');
-      await waitForTransactionReceipt(publicClient, { hash: approveTx.hash });
+      // 2) Wait for approval with proper retry configuration
+      const approveReceipt = await waitForTransactionReceipt(publicClient, {
+        hash: approveTxHash.hash,
+        confirmations: 1, // Attend 1 confirmation
+        timeout: 240_000, // 4 minutes
+        pollingInterval: 1_000, // Vérifie toutes les secondes
+      });
 
-      // 3) Deposit USDC only after approval is mined
-      const depositTx = await depositUsdcWrite({ args: [amountWei] });
+      if (approveReceipt.status !== 'success') {
+        throw new Error('Approve transaction failed');
+      }
 
-      // (Optional) wait for deposit confirmation as well
-      await waitForTransactionReceipt(publicClient, { hash: depositTx.hash });
+      // 3) Deposit USDC - l'approval est maintenant confirmée
+      const depositTxHash = await depositUsdcWrite({ args: [amountWei] });
 
+      const depositReceipt = await waitForTransactionReceipt(publicClient, {
+        hash: depositTxHash.hash,
+        confirmations: 1,
+        timeout: 240_000,
+        pollingInterval: 1_000,
+      });
+
+      if (depositReceipt.status !== 'success') {
+        throw new Error('Deposit transaction failed');
+      }
+
+      console.log('USDC deposit completed successfully');
       return {
-        hash: depositTx.hash,
+        hash: depositTxHash.hash,
         status: 'success',
       };
     } catch (error) {
+      console.error('Error in depositUsdc:', error);
+
+      // Gestion d'erreur plus spécifique
+      if (error instanceof Error) {
+        if (error.message.includes('User rejected')) {
+          throw new Error('Transaction rejected by user');
+        }
+        if (error.message.includes('TransactionNotFoundError')) {
+          throw new Error(
+            'Transaction not found. Please check your wallet and try again.'
+          );
+        }
+      }
+
       return {
         hash: '',
         status: 'error',
