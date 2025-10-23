@@ -5,111 +5,116 @@ const MarketInfo: React.FC = () => {
   const [volatility, setVolatility] = useState<string>('0');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetch, setLastFetch] = useState<number>(0);
+
+  const CACHE_DURATION = 60000; // 1 minute cache
+  const CACHE_KEY_PRICE = 'osiris_eth_price';
+  const CACHE_KEY_VOLATILITY = 'osiris_volatility';
+  const CACHE_KEY_TIMESTAMP = 'osiris_cache_timestamp';
+
+  // Load cached data on mount
+  useEffect(() => {
+    const cachedPrice = localStorage.getItem(CACHE_KEY_PRICE);
+    const cachedVolatility = localStorage.getItem(CACHE_KEY_VOLATILITY);
+    const cachedTimestamp = localStorage.getItem(CACHE_KEY_TIMESTAMP);
+
+    if (cachedPrice && cachedVolatility && cachedTimestamp) {
+      const timestamp = parseInt(cachedTimestamp);
+      const now = Date.now();
+
+      // Use cache if less than 1 minute old
+      if (now - timestamp < CACHE_DURATION) {
+        setEthPrice(cachedPrice);
+        setVolatility(cachedVolatility);
+        setLastFetch(timestamp);
+      }
+    }
+  }, []);
 
   const fetchMarketData = useCallback(async () => {
+    // Check if we fetched recently (within 30 seconds)
+    const now = Date.now();
+    if (lastFetch && now - lastFetch < 30000) {
+      console.log('Using cached data, too soon to refetch');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      // Use a single reliable CORS proxy
-      const corsProxy = 'https://api.allorigins.win/raw?url=';
-
-      // Fetch current ETH price
-      const priceUrl = `${corsProxy}${encodeURIComponent(
-        'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd'
-      )}`;
+      // Fetch current ETH price directly from CoinGecko (CORS enabled)
+      const priceUrl =
+        'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
 
       const priceResponse = await fetch(priceUrl);
 
       if (!priceResponse.ok) {
+        if (priceResponse.status === 429) {
+          throw new Error('Rate limit exceeded');
+        }
         throw new Error(`HTTP error! status: ${priceResponse.status}`);
       }
 
       const priceData = await priceResponse.json();
-      console.log('Price data received:', priceData);
-
-      // Handle allorigins.win response structure
-      let actualPriceData = priceData;
-      if (priceData.status && priceData.status.contents) {
-        try {
-          actualPriceData = JSON.parse(priceData.status.contents);
-          console.log('Parsed price data from allorigins:', actualPriceData);
-        } catch (parseError) {
-          throw new Error('Failed to parse proxy response');
-        }
-      }
 
       // Check data structure
-      if (!actualPriceData?.ethereum?.usd) {
+      if (!priceData?.ethereum?.usd) {
         throw new Error('Invalid price data structure');
       }
 
-      const currentPrice = actualPriceData.ethereum.usd;
-      setEthPrice(currentPrice.toString());
+      const currentPrice = priceData.ethereum.usd;
+      const priceString = currentPrice.toString();
+      setEthPrice(priceString);
+
+      // Cache the price
+      localStorage.setItem(CACHE_KEY_PRICE, priceString);
+      localStorage.setItem(CACHE_KEY_TIMESTAMP, now.toString());
 
       // Fetch historical data for volatility calculation
-      const historicalUrl = `${corsProxy}${encodeURIComponent(
-        'https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=7&interval=daily'
-      )}`;
+      const historicalUrl =
+        'https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=7&interval=daily';
 
       const historicalResponse = await fetch(historicalUrl);
 
-      if (!historicalResponse.ok) {
-        console.warn('Historical data unavailable, using price data only');
-        return; // Don't throw error for historical data
-      }
+      if (historicalResponse.ok) {
+        const historicalData = await historicalResponse.json();
 
-      const historicalData = await historicalResponse.json();
-      console.log('Historical data received:', historicalData);
-
-      // Handle allorigins.win response structure for historical data
-      let actualHistoricalData = historicalData;
-      if (historicalData.status && historicalData.status.contents) {
-        try {
-          actualHistoricalData = JSON.parse(historicalData.status.contents);
-          console.log(
-            'Parsed historical data from allorigins:',
-            actualHistoricalData
+        // Calculate volatility from historical prices
+        if (historicalData?.prices && Array.isArray(historicalData.prices)) {
+          const prices = historicalData.prices.map(
+            (item: [number, number]) => item[1]
           );
-        } catch (parseError) {
-          console.warn('Failed to parse historical proxy response');
-          return; // Skip volatility calculation if parsing fails
-        }
-      }
 
-      // Calculate volatility from historical prices
-      if (
-        actualHistoricalData?.prices &&
-        Array.isArray(actualHistoricalData.prices)
-      ) {
-        const prices = actualHistoricalData.prices.map(
-          (item: [number, number]) => item[1]
-        );
+          if (prices.length > 1) {
+            const returns = [];
+            for (let i = 1; i < prices.length; i++) {
+              returns.push((prices[i] - prices[i - 1]) / prices[i - 1]);
+            }
 
-        if (prices.length > 1) {
-          const returns = [];
-          for (let i = 1; i < prices.length; i++) {
-            returns.push((prices[i] - prices[i - 1]) / prices[i - 1]);
+            const mean =
+              returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
+            const variance =
+              returns.reduce((sum, ret) => sum + Math.pow(ret - mean, 2), 0) /
+              returns.length;
+            const volatilityPercent = Math.sqrt(variance) * 100;
+            const volatilityString = volatilityPercent.toFixed(2);
+
+            setVolatility(volatilityString);
+            localStorage.setItem(CACHE_KEY_VOLATILITY, volatilityString);
           }
-
-          const mean =
-            returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
-          const variance =
-            returns.reduce((sum, ret) => sum + Math.pow(ret - mean, 2), 0) /
-            returns.length;
-          const volatilityPercent = Math.sqrt(variance) * 100;
-
-          setVolatility(volatilityPercent.toFixed(2));
         }
       }
+
+      setLastFetch(now);
     } catch (err) {
       console.error('Error fetching market data:', err);
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to fetch market data';
 
       // Show user-friendly error message
-      if (errorMessage.includes('429')) {
-        setError('API rate limit reached. Please try again in a few minutes.');
+      if (errorMessage.includes('429') || errorMessage.includes('Rate limit')) {
+        setError('API rate limit. Please wait a moment before refreshing.');
       } else {
         setError('Unable to fetch market data. Please try again later.');
       }
@@ -118,13 +123,13 @@ const MarketInfo: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []); // No dependencies to prevent infinite loops
+  }, [lastFetch, CACHE_KEY_PRICE, CACHE_KEY_VOLATILITY, CACHE_KEY_TIMESTAMP, CACHE_DURATION]);
 
   useEffect(() => {
     fetchMarketData();
 
-    // Update every 5 minutes to avoid rate limiting and prevent constant loading
-    const interval = setInterval(fetchMarketData, 300000);
+    // Update every 2 minutes to avoid rate limiting
+    const interval = setInterval(fetchMarketData, 120000);
     return () => clearInterval(interval);
   }, [fetchMarketData]);
 
