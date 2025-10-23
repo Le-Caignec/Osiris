@@ -27,9 +27,16 @@
         "lasna": {
             "chainId": 5318007,
             "rpcUrl": "https://lasna-rpc.rnk.dev/",
-            "cronTopic":"0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687",
+            "cronTopic": "0xe20b31294d84c3661ddc8f423abb9c70310d0cf172aa2714ead78029b325e3f4",
             "reactiveSystemContract":"0x0000000000000000000000000000000000fffFfF",
             "reactiveContract":"0xc14Ce8A395c2Bfd73977277eC3e8bDF584912F56"
+        },
+        "reactive": {
+            "chainId": 1597,
+            "rpcUrl": "https://mainnet-rpc.rnk.dev/",
+            "cronTopic": "0xe20b31294d84c3661ddc8f423abb9c70310d0cf172aa2714ead78029b325e3f4",
+            "reactiveSystemContract":"0x0000000000000000000000000000000000fffFfF",
+            "reactiveContract":"0x0000000000000000000000000000000000000000"
         }
     }
 }

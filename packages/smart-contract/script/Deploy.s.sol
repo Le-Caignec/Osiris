@@ -41,23 +41,3 @@ contract DeployOsiris is Script {
         vm.stopBroadcast();
     }
 }
-
-contract DeployCronReactive is Script {
-    function run() external {
-        string memory chain = vm.envString("CHAIN");
-        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig = ConfigLib.readReactiveNetworkConfig();
-        ConfigLib.DestinationNetworkConfig memory callbackConfig = ConfigLib.readDestinationNetworkConfig(chain);
-
-        address service = reactiveNetworkConfig.reactiveSystemContract;
-        uint256 cronTopic = reactiveNetworkConfig.cronTopic;
-        uint256 destinationChainId = callbackConfig.chainId;
-        address callbackContractAddress = callbackConfig.callbackContract;
-
-        vm.startBroadcast();
-        // Deploy the Reactive contract on Lasna
-        CronReactive cronReactive =
-            new CronReactive{value: 0.1 ether}(service, cronTopic, destinationChainId, callbackContractAddress);
-        console.log("Cron Reactive Contract Address:", address(cronReactive));
-        vm.stopBroadcast();
-    }
-}
