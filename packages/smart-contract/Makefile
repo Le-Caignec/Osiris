@@ -16,9 +16,9 @@ test-unit:
 
 # Deployment Commands
 deploy-reactive:
-	# Deploy Reactive Contract - Uses local account for sepolia, Ledger for ethereum
+	# Deploy Reactive Contract - Uses local account for testnet, Ledger for mainnet
 	@echo "Reading configuration..."
-	@if [ "$(CHAIN)" = "ethereum" ]; then \
+	@if [ "$(CHAIN)" = "ethereum" ] || [ "$(CHAIN)" = "arbitrum" ]; then \
 		REACTIVE_NETWORK="reactive"; \
 	else \
 		REACTIVE_NETWORK="lasna"; \
@@ -44,7 +44,7 @@ deploy-reactive:
 		echo "No value provided, using default: 0.1 ether"; \
 	fi; \
 	echo "Deploying with $$VALUE ether..."; \
-	if [ "$(CHAIN)" = "ethereum" ]; then \
+	if [ "$(CHAIN)" = "ethereum" ] || [ "$(CHAIN)" = "arbitrum" ]; then \
 		echo "Using Ledger address: $(LEDGER_ADDRESS)"; \
 		forge create --broadcast \
 			--rpc-url $$REACTIVE_RPC_URL \
@@ -66,9 +66,16 @@ deploy-reactive:
 	fi
 
 deploy-osiris:
-	# Deploy Osiris - Uses local account for Sepolia, Ledger for other chains
+	# Deploy Osiris - Uses local account for Sepolia, Ledger for mainnet chains
 	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
 	echo "Deploying Osiris to $(CHAIN) with RPC: $$RPC_URL"; \
+	if [ "$(CHAIN)" = "arbitrum" ]; then \
+		VERIFIER="arbiscan"; \
+		VERIFIER_URL="https://api.arbiscan.io/api"; \
+	else \
+		VERIFIER="etherscan"; \
+		VERIFIER_URL=""; \
+	fi; \
 	if [ "$(CHAIN)" = "sepolia" ]; then \
 		echo "Using local keystore account: $(ACCOUNT)"; \
 		forge script script/Deploy.s.sol:DeployOsiris \
@@ -76,22 +83,35 @@ deploy-osiris:
 			--account $(ACCOUNT) \
 			--broadcast \
 			--verify \
-			--verifier etherscan \
+			--verifier $$VERIFIER \
 			--verifier-api-key $(ETHERSCAN_API_KEY) \
 			-vvv; \
 	else \
 		echo "Please connect your Ledger and unlock it..."; \
 		echo "Make sure the Ethereum app is open on your Ledger"; \
 		echo "Using Ledger address: $(LEDGER_ADDRESS)"; \
-		forge script script/Deploy.s.sol:DeployOsiris \
-			--rpc-url $$RPC_URL \
-			--ledger \
-			--sender $(LEDGER_ADDRESS) \
-			--broadcast \
-			--verify \
-			--verifier etherscan \
-			--verifier-api-key $(ETHERSCAN_API_KEY) \
-			-vvv; \
+		if [ -n "$$VERIFIER_URL" ]; then \
+			forge script script/Deploy.s.sol:DeployOsiris \
+				--rpc-url $$RPC_URL \
+				--ledger \
+				--sender $(LEDGER_ADDRESS) \
+				--broadcast \
+				--verify \
+				--verifier $$VERIFIER \
+				--verifier-url $$VERIFIER_URL \
+				--verifier-api-key $(ETHERSCAN_API_KEY) \
+				-vvv; \
+		else \
+			forge script script/Deploy.s.sol:DeployOsiris \
+				--rpc-url $$RPC_URL \
+				--ledger \
+				--sender $(LEDGER_ADDRESS) \
+				--broadcast \
+				--verify \
+				--verifier $$VERIFIER \
+				--verifier-api-key $(ETHERSCAN_API_KEY) \
+				-vvv; \
+		fi; \
 	fi
 
 # Cron Management Commands

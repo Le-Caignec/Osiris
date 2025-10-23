@@ -12,6 +12,18 @@
             "callbackContract": "0x0000000000000000000000000000000000000000",
             "chainlinkEthUsdFeed": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
         },
+        "arbitrum": {
+            "chainId": 42161,
+            "rpcUrl": "https://arb1.arbitrum.io/rpc",
+            "uniswapUniversalRouter": "0xa51afafe0263b40edaef0df8781ea9aa03e381a3",
+            "uniswapPoolManager": "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
+            "uniswapPermit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            "weth": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+            "usdc": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+            "callbackProxyContract":"0x4730c58FDA9d78f60c987039aEaB7d261aAd942E",
+            "callbackContract": "0x0000000000000000000000000000000000000000",
+            "chainlinkEthUsdFeed": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612"
+        },
         "sepolia": {
             "chainId": 11155111,
             "rpcUrl": "https://gateway.tenderly.co/public/sepolia",
