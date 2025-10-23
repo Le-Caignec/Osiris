@@ -21,7 +21,7 @@
             "weth": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
             "usdc": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
             "callbackProxyContract":"0x4730c58FDA9d78f60c987039aEaB7d261aAd942E",
-            "callbackContract": "0x0000000000000000000000000000000000000000",
+            "callbackContract": "0x5060963F11B2c4d95bB5e0bFcf52e76b1fb2aD56",
             "chainlinkEthUsdFeed": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612"
         },
         "sepolia": {

@@ -51,7 +51,7 @@ deploy-reactive:
 			--rpc-url $$REACTIVE_RPC_URL \
 			--chain-id $$REACTIVE_CHAIN_ID \
 			--ledger \
-			--hd-paths "m/44'/60'/$$LEDGER_IDX'/0/0" \
+			--mnemonic-indexes $$LEDGER_IDX \
 			--value $${VALUE}ether \
 			src/CronReactive.sol:CronReactive \
 			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$DESTINATION_CHAIN_ID $$CALLBACK_CONTRACT; \
@@ -85,10 +85,13 @@ deploy-osiris:
 		echo "Make sure the Ethereum app is open on your Ledger"; \
 		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
 		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
+		SENDER_ADDR=$$(cast wallet address --ledger --mnemonic-index $$LEDGER_IDX); \
+		echo "Ledger address: $$SENDER_ADDR"; \
 		forge script script/Deploy.s.sol:DeployOsiris \
 			--rpc-url $$RPC_URL \
 			--ledger \
-			--hd-paths "m/44'/60'/$$LEDGER_IDX'/0/0" \
+			--mnemonic-indexes $$LEDGER_IDX \
+			--sender $$SENDER_ADDR \
 			--broadcast \
 			--verify \
 			--verifier etherscan \
