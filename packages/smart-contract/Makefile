@@ -16,7 +16,7 @@ test-unit:
 
 # Deployment Commands
 deploy-reactive:
-	# Deploy Reactive Contract - Uses lasna for sepolia, reactive mainnet for ethereum
+	# Deploy Reactive Contract - Uses local account for sepolia, Ledger for ethereum
 	@echo "Reading configuration..."
 	@if [ "$(CHAIN)" = "ethereum" ]; then \
 		REACTIVE_NETWORK="reactive"; \
@@ -44,13 +44,26 @@ deploy-reactive:
 		echo "No value provided, using default: 0.1 ether"; \
 	fi; \
 	echo "Deploying with $$VALUE ether..."; \
-	forge create --broadcast \
-		--rpc-url $$REACTIVE_RPC_URL \
-		--chain-id $$REACTIVE_CHAIN_ID \
-		--account $(ACCOUNT) \
-		--value $${VALUE}ether \
-		src/CronReactive.sol:CronReactive \
-		--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$DESTINATION_CHAIN_ID $$CALLBACK_CONTRACT
+	if [ "$(CHAIN)" = "ethereum" ]; then \
+		echo "Using Ledger address: $(LEDGER_ADDRESS)"; \
+		forge create --broadcast \
+			--rpc-url $$REACTIVE_RPC_URL \
+			--chain-id $$REACTIVE_CHAIN_ID \
+			--ledger \
+			--sender $(LEDGER_ADDRESS) \
+			--value $${VALUE}ether \
+			src/CronReactive.sol:CronReactive \
+			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$DESTINATION_CHAIN_ID $$CALLBACK_CONTRACT; \
+	else \
+		echo "Using local keystore account: $(ACCOUNT)"; \
+		forge create --broadcast \
+			--rpc-url $$REACTIVE_RPC_URL \
+			--chain-id $$REACTIVE_CHAIN_ID \
+			--account $(ACCOUNT) \
+			--value $${VALUE}ether \
+			src/CronReactive.sol:CronReactive \
+			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$DESTINATION_CHAIN_ID $$CALLBACK_CONTRACT; \
+	fi
 
 deploy-osiris:
 	# Deploy Osiris - Uses local account for Sepolia, Ledger for other chains
