@@ -67,7 +67,7 @@ The faucet provides 10 USDC per hour per address per hours
 ### Ethereum Mainnet Addresses
 
 - **Ethereum Mainnet**:
-  - Osiris Contract: `Deployed address coming soon...`
+  - Osiris Contract: [`0x5060963F11B2c4d95bB5e0bFcf52e76b1fb2aD56`](https://arbiscan.io/address/0x5060963F11B2c4d95bB5e0bFcf52e76b1fb2aD56)
   - Reactive Cron Contract: `Deployed address coming soon...`
 
 ### Getting Started on Mainnet

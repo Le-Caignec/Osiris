@@ -36,13 +36,13 @@ const BalanceCard: React.FC = () => {
   };
 
   const getNetworkName = () => {
-    if (chainId === 1) return 'Ethereum';
+    if (chainId === 42161) return 'Arbitrum';
     if (chainId === 11155111) return 'Sepolia';
     return 'Unknown';
   };
 
   const getNetworkColor = () => {
-    if (chainId === 1) return 'from-blue-500 to-blue-600';
+    if (chainId === 42161) return 'from-blue-500 to-blue-600';
     if (chainId === 11155111) return 'from-purple-500 to-purple-600';
     return 'from-gray-500 to-gray-600';
   };

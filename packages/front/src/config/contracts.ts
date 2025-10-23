@@ -1,12 +1,12 @@
 // Chain configuration for different networks
 export const CHAIN = {
-  // Ethereum Mainnet
-  ethereum: {
+  // Arbitrum Mainnet
+  arbitrum: {
     contracts: {
-      osiris: '...',
-      usdc: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      osiris: '0x81BD04F12f2e58029c52cd572139e26d2C494988',
+      usdc: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     },
-    rpc: 'https://mainnet.gateway.tenderly.co',
+    rpc: 'https://arb1.arbitrum.io/rpc',
   },
   // Sepolia Testnet
   sepolia: {
@@ -20,7 +20,7 @@ export const CHAIN = {
 
 // Legacy exports for backward compatibility
 export const CONTRACT_ADDRESSES = {
-  ethereum: CHAIN.ethereum.contracts,
+  arbitrum: CHAIN.arbitrum.contracts,
   sepolia: CHAIN.sepolia.contracts,
 };
 
