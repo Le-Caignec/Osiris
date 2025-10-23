@@ -45,12 +45,13 @@ deploy-reactive:
 	fi; \
 	echo "Deploying with $$VALUE ether..."; \
 	if [ "$(CHAIN)" = "ethereum" ] || [ "$(CHAIN)" = "arbitrum" ]; then \
-		echo "Using Ledger address: $(LEDGER_ADDRESS)"; \
+		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
+		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
 		forge create --broadcast \
 			--rpc-url $$REACTIVE_RPC_URL \
 			--chain-id $$REACTIVE_CHAIN_ID \
 			--ledger \
-			--sender $(LEDGER_ADDRESS) \
+			--hd-paths "m/44'/60'/$$LEDGER_IDX'/0/0" \
 			--value $${VALUE}ether \
 			src/CronReactive.sol:CronReactive \
 			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$DESTINATION_CHAIN_ID $$CALLBACK_CONTRACT; \
@@ -69,13 +70,6 @@ deploy-osiris:
 	# Deploy Osiris - Uses local account for Sepolia, Ledger for mainnet chains
 	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
 	echo "Deploying Osiris to $(CHAIN) with RPC: $$RPC_URL"; \
-	if [ "$(CHAIN)" = "arbitrum" ]; then \
-		VERIFIER="arbiscan"; \
-		VERIFIER_URL="https://api.arbiscan.io/api"; \
-	else \
-		VERIFIER="etherscan"; \
-		VERIFIER_URL=""; \
-	fi; \
 	if [ "$(CHAIN)" = "sepolia" ]; then \
 		echo "Using local keystore account: $(ACCOUNT)"; \
 		forge script script/Deploy.s.sol:DeployOsiris \
@@ -83,35 +77,23 @@ deploy-osiris:
 			--account $(ACCOUNT) \
 			--broadcast \
 			--verify \
-			--verifier $$VERIFIER \
+			--verifier etherscan \
 			--verifier-api-key $(ETHERSCAN_API_KEY) \
 			-vvv; \
 	else \
 		echo "Please connect your Ledger and unlock it..."; \
 		echo "Make sure the Ethereum app is open on your Ledger"; \
-		echo "Using Ledger address: $(LEDGER_ADDRESS)"; \
-		if [ -n "$$VERIFIER_URL" ]; then \
-			forge script script/Deploy.s.sol:DeployOsiris \
-				--rpc-url $$RPC_URL \
-				--ledger \
-				--sender $(LEDGER_ADDRESS) \
-				--broadcast \
-				--verify \
-				--verifier $$VERIFIER \
-				--verifier-url $$VERIFIER_URL \
-				--verifier-api-key $(ETHERSCAN_API_KEY) \
-				-vvv; \
-		else \
-			forge script script/Deploy.s.sol:DeployOsiris \
-				--rpc-url $$RPC_URL \
-				--ledger \
-				--sender $(LEDGER_ADDRESS) \
-				--broadcast \
-				--verify \
-				--verifier $$VERIFIER \
-				--verifier-api-key $(ETHERSCAN_API_KEY) \
-				-vvv; \
-		fi; \
+		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
+		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
+		forge script script/Deploy.s.sol:DeployOsiris \
+			--rpc-url $$RPC_URL \
+			--ledger \
+			--hd-paths "m/44'/60'/$$LEDGER_IDX'/0/0" \
+			--broadcast \
+			--verify \
+			--verifier etherscan \
+			--verifier-api-key $(ETHERSCAN_API_KEY) \
+			-vvv; \
 	fi
 
 # Cron Management Commands
