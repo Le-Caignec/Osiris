@@ -70,9 +70,17 @@ deploy-osiris:
 	# Deploy Osiris - Uses local account for Sepolia, Ledger for mainnet chains
 	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
 	echo "Deploying Osiris to $(CHAIN) with RPC: $$RPC_URL"; \
+	echo ""; \
+	read -p "Fund callback proxy for new Osiris contract? Enter amount in ETH (0 to skip): " FUND_ETH; \
+	if [ -z "$$FUND_ETH" ]; then \
+		FUND_ETH="0"; \
+	fi; \
+	FUND_WEI=$$(cast to-wei $$FUND_ETH ether 2>/dev/null || echo "0"); \
+	echo "Will fund callback proxy with: $$FUND_ETH ETH ($$FUND_WEI wei)"; \
+	echo ""; \
 	if [ "$(CHAIN)" = "sepolia" ]; then \
 		echo "Using local keystore account: $(ACCOUNT)"; \
-		forge script script/Deploy.s.sol:DeployOsiris \
+		FUND_AMOUNT=$$FUND_WEI forge script script/Deploy.s.sol:DeployOsiris \
 			--rpc-url $$RPC_URL \
 			--account $(ACCOUNT) \
 			--broadcast \
@@ -87,7 +95,7 @@ deploy-osiris:
 		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
 		SENDER_ADDR=$$(cast wallet address --ledger --mnemonic-index $$LEDGER_IDX); \
 		echo "Ledger address: $$SENDER_ADDR"; \
-		forge script script/Deploy.s.sol:DeployOsiris \
+		FUND_AMOUNT=$$FUND_WEI forge script script/Deploy.s.sol:DeployOsiris \
 			--rpc-url $$RPC_URL \
 			--ledger \
 			--mnemonic-indexes $$LEDGER_IDX \
