@@ -38,12 +38,12 @@ deploy-reactive:
 	echo "  - Destination Chain ($(CHAIN)) ID: $$DESTINATION_CHAIN_ID"; \
 	echo "  - Callback Contract: $$CALLBACK_CONTRACT"; \
 	echo ""; \
-	read -p "Enter value to send (in ether, e.g., 0.1, 15): " VALUE; \
+	read -p "Enter value to send (in REACT, e.g., 0.1, 15): " VALUE; \
 	if [ -z "$$VALUE" ]; then \
 		VALUE="0.1"; \
-		echo "No value provided, using default: 0.1 ether"; \
+		echo "No value provided, using default: 0.1 REACT"; \
 	fi; \
-	echo "Deploying with $$VALUE ether..."; \
+	echo "Deploying with $$VALUE REACT..."; \
 	if [ "$(CHAIN)" = "ethereum" ] || [ "$(CHAIN)" = "arbitrum" ]; then \
 		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
 		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
@@ -51,7 +51,7 @@ deploy-reactive:
 			--rpc-url $$REACTIVE_RPC_URL \
 			--chain-id $$REACTIVE_CHAIN_ID \
 			--ledger \
-			--mnemonic-indexes $$LEDGER_IDX \
+			--mnemonic-index $$LEDGER_IDX \
 			--value $${VALUE}ether \
 			src/CronReactive.sol:CronReactive \
 			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$DESTINATION_CHAIN_ID $$CALLBACK_CONTRACT; \
