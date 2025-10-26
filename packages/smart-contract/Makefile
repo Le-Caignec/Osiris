@@ -195,3 +195,19 @@ check-callback-balance:
 	BALANCE_WEI=$$(cast call $$CALLBACK_PROXY "reserves(address)" $$CALLBACK_CONTRACT --rpc-url $$RPC_URL | cast to-dec); \
 	BALANCE_ETH=$$(cast to-unit $$BALANCE_WEI ether); \
 	echo "💰 Balance: $$BALANCE_ETH ETH"
+
+check-callback-debts:
+	# Check the debts balance in the callback proxy
+	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
+	CALLBACK_PROXY=$$(jq -r '.chains.$(CHAIN).callbackProxyContract' config/config.json); \
+	CALLBACK_CONTRACT=$$(jq -r '.chains.$(CHAIN).callbackContract' config/config.json); \
+	echo "==========================================="; \
+	echo "Checking Callback Debts on $(CHAIN)"; \
+	echo "==========================================="; \
+	echo "Network: $(CHAIN)"; \
+	echo "Callback Proxy: $$CALLBACK_PROXY"; \
+	echo "Callback Contract: $$CALLBACK_CONTRACT"; \
+	echo ""; \
+	DEBTS_WEI=$$(cast call $$CALLBACK_PROXY "debts(address)" $$CALLBACK_CONTRACT --rpc-url $$RPC_URL | cast to-dec); \
+	DEBTS_ETH=$$(cast to-unit $$DEBTS_WEI ether); \
+	echo "💸 Debts: $$DEBTS_ETH ETH"
