@@ -140,3 +140,58 @@ trigger-osiris-callback:
 		--account $(ACCOUNT) \
 		--broadcast \
 		-vvv
+
+fund-callback-proxy:
+	# Send funds to the callback proxy contract
+	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
+	CALLBACK_PROXY=$$(jq -r '.chains.$(CHAIN).callbackProxyContract' config/config.json); \
+	CALLBACK_CONTRACT=$$(jq -r '.chains.$(CHAIN).callbackContract' config/config.json); \
+	echo "==========================================="; \
+	echo "Funding Callback Proxy on $(CHAIN)"; \
+	echo "==========================================="; \
+	echo "Network: $(CHAIN)"; \
+	echo "RPC URL: $$RPC_URL"; \
+	echo "Callback Proxy: $$CALLBACK_PROXY"; \
+	echo "Callback Contract: $$CALLBACK_CONTRACT"; \
+	echo ""; \
+	read -p "Enter amount to send (in ETH, e.g., 0.1): " AMOUNT; \
+	if [ -z "$$AMOUNT" ]; then \
+		echo "Error: Amount cannot be empty"; \
+		exit 1; \
+	fi; \
+	echo ""; \
+	echo "Sending $${AMOUNT} ETH to callback proxy..."; \
+	if [ "$(CHAIN)" = "sepolia" ]; then \
+		echo "Using local keystore account: $(ACCOUNT)"; \
+		cast send $$CALLBACK_PROXY \
+			"depositTo(address)" $$CALLBACK_CONTRACT \
+			--rpc-url $$RPC_URL \
+			--account $(ACCOUNT) \
+			--value $${AMOUNT}ether; \
+	else \
+		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
+		echo "Using Ledger account index: $$LEDGER_IDX"; \
+		cast send $$CALLBACK_PROXY \
+			"depositTo(address)" $$CALLBACK_CONTRACT \
+			--rpc-url $$RPC_URL \
+			--ledger \
+			--mnemonic-index $$LEDGER_IDX \
+			--value $${AMOUNT}ether; \
+	fi; \
+	echo "✅ Funds sent successfully!"
+
+check-callback-balance:
+	# Check the reserves balance in the callback proxy
+	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
+	CALLBACK_PROXY=$$(jq -r '.chains.$(CHAIN).callbackProxyContract' config/config.json); \
+	CALLBACK_CONTRACT=$$(jq -r '.chains.$(CHAIN).callbackContract' config/config.json); \
+	echo "==========================================="; \
+	echo "Checking Callback Balance on $(CHAIN)"; \
+	echo "==========================================="; \
+	echo "Network: $(CHAIN)"; \
+	echo "Callback Proxy: $$CALLBACK_PROXY"; \
+	echo "Callback Contract: $$CALLBACK_CONTRACT"; \
+	echo ""; \
+	BALANCE_WEI=$$(cast call $$CALLBACK_PROXY "reserves(address)" $$CALLBACK_CONTRACT --rpc-url $$RPC_URL | cast to-dec); \
+	BALANCE_ETH=$$(cast to-unit $$BALANCE_WEI ether); \
+	echo "💰 Balance: $$BALANCE_ETH ETH"
