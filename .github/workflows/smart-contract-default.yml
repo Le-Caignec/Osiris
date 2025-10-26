@@ -36,5 +36,28 @@ jobs:
       - name: Run Forge build
         run: forge build --sizes
 
-      - name: Run Unit Tests
+  test:
+    name: Test on ${{ matrix.network }}
+    runs-on: ubuntu-latest
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        network: [sepolia, ethereum, arbitrum]
+    defaults:
+      run:
+        working-directory: packages/smart-contract
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Unit Tests on ${{ matrix.network }}
+        env:
+          CHAIN: ${{ matrix.network }}
         run: make test-unit

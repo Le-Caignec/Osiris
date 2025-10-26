@@ -19,8 +19,9 @@ contract OsirisTest is Test {
     OsirisMock private vault;
     UniV4SwapMock private routerMock;
 
-    address private alice = makeAddr("alice");
-    address private bob = makeAddr("bob");
+    // Use high private keys to avoid collision with existing contracts on forked networks
+    address private alice = vm.addr(0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef1);
+    address private bob = vm.addr(0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef2);
 
     // Events mirrored from Osiris
     event DepositedUSDC(address indexed user, uint256 amount);

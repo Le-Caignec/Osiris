@@ -2,24 +2,12 @@
 pragma solidity ^0.8.22;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Callback} from "../src/Callback.sol";
 import {CronReactive} from "../src/CronReactive.sol";
 import {Osiris} from "../src/Osiris.sol";
 import {ConfigLib} from "./lib/configLib.sol";
 
-// TODO: To remove
-contract DeployCallback is Script {
-    function run() external {
-        string memory chain = vm.envString("CHAIN");
-        ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
-        address callbackSender = config.callbackProxyContract;
-
-        vm.startBroadcast();
-        // Deploy the Callback contract on Sepolia
-        Callback callbackContract = new Callback{value: 0.000001 ether}(callbackSender);
-        console.log("Callback Contract Address (Sepolia):", address(callbackContract));
-        vm.stopBroadcast();
-    }
+interface ICallbackProxy {
+    function depositTo(address payee) external payable;
 }
 
 contract DeployOsiris is Script {
@@ -34,30 +22,21 @@ contract DeployOsiris is Script {
         address ethUsdFeed = config.chainlinkEthUsdFeed;
 
         vm.startBroadcast();
+
         // Deploy the Osiris contract with Chainlink integration
-        Osiris osirisContract =
-            new Osiris{value: 0.01 ether}(universalRouter, permit2, usdc, callbackSender, ethUsdFeed);
+        Osiris osirisContract = new Osiris(universalRouter, permit2, usdc, callbackSender, ethUsdFeed);
         console.log("Osiris Contract Address:", address(osirisContract));
-        vm.stopBroadcast();
-    }
-}
 
-contract DeployCronReactive is Script {
-    function run() external {
-        string memory chain = vm.envString("CHAIN");
-        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig = ConfigLib.readReactiveNetworkConfig();
-        ConfigLib.DestinationNetworkConfig memory callbackConfig = ConfigLib.readDestinationNetworkConfig(chain);
+        // Fund the callback proxy if FUND_AMOUNT is set
+        uint256 fundAmount = vm.envOr("FUND_AMOUNT", uint256(0));
+        if (fundAmount > 0) {
+            console.log("Funding callback proxy with", fundAmount, "wei");
+            ICallbackProxy(callbackSender).depositTo{value: fundAmount}(address(osirisContract));
+            console.log("Successfully funded callback proxy");
+        } else {
+            console.log("No funding requested (FUND_AMOUNT not set or is 0)");
+        }
 
-        address service = reactiveNetworkConfig.reactiveSystemContract;
-        uint256 cronTopic = reactiveNetworkConfig.cronTopic;
-        uint256 destinationChainId = callbackConfig.chainId;
-        address callbackContractAddress = callbackConfig.callbackContract;
-
-        vm.startBroadcast();
-        // Deploy the Reactive contract on Lasna
-        CronReactive cronReactive =
-            new CronReactive{value: 0.1 ether}(service, cronTopic, destinationChainId, callbackContractAddress);
-        console.log("Cron Reactive Contract Address:", address(cronReactive));
         vm.stopBroadcast();
     }
 }

@@ -45,7 +45,7 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
   // Get contract addresses based on current chain
   const getContractAddresses = () => {
-    if (chainId === 1) return CONTRACT_ADDRESSES.ethereum;
+    if (chainId === 42161) return CONTRACT_ADDRESSES.arbitrum;
     if (chainId === 11155111) return CONTRACT_ADDRESSES.sepolia;
     return CONTRACT_ADDRESSES.sepolia; // Default to Sepolia
   };

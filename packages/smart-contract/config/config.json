@@ -12,6 +12,18 @@
             "callbackContract": "0x0000000000000000000000000000000000000000",
             "chainlinkEthUsdFeed": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
         },
+        "arbitrum": {
+            "chainId": 42161,
+            "rpcUrl": "https://arb1.arbitrum.io/rpc",
+            "uniswapUniversalRouter": "0xa51afafe0263b40edaef0df8781ea9aa03e381a3",
+            "uniswapPoolManager": "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
+            "uniswapPermit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            "weth": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+            "usdc": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+            "callbackProxyContract":"0x4730c58FDA9d78f60c987039aEaB7d261aAd942E",
+            "callbackContract": "0x5060963F11B2c4d95bB5e0bFcf52e76b1fb2aD56",
+            "chainlinkEthUsdFeed": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612"
+        },
         "sepolia": {
             "chainId": 11155111,
             "rpcUrl": "https://gateway.tenderly.co/public/sepolia",
@@ -27,9 +39,16 @@
         "lasna": {
             "chainId": 5318007,
             "rpcUrl": "https://lasna-rpc.rnk.dev/",
-            "cronTopic":"0x04463f7c1651e6b9774d7f85c85bb94654e3c46ca79b0c16fb16d4183307b687",
+            "cronTopic": "0xe20b31294d84c3661ddc8f423abb9c70310d0cf172aa2714ead78029b325e3f4",
             "reactiveSystemContract":"0x0000000000000000000000000000000000fffFfF",
             "reactiveContract":"0xc14Ce8A395c2Bfd73977277eC3e8bDF584912F56"
+        },
+        "reactive": {
+            "chainId": 1597,
+            "rpcUrl": "https://mainnet-rpc.rnk.dev/",
+            "cronTopic": "0xe20b31294d84c3661ddc8f423abb9c70310d0cf172aa2714ead78029b325e3f4",
+            "reactiveSystemContract":"0x0000000000000000000000000000000000fffFfF",
+            "reactiveContract":"0x43b13636B59f9Dc05687Ac0CcDe2761707d3cD1d"
         }
     }
 }
