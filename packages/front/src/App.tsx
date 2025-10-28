@@ -9,7 +9,12 @@ import { WagmiConfig, createConfig, configureChains } from 'wagmi';
 import { arbitrum, sepolia } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
-import { RainbowKitProvider, getDefaultWallets } from '@rainbow-me/rainbowkit';
+import {
+  RainbowKitProvider,
+  getDefaultWallets,
+  connectorsForWallets,
+} from '@rainbow-me/rainbowkit';
+import { rabbyWallet } from '@rainbow-me/rainbowkit/wallets';
 import '@rainbow-me/rainbowkit/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/Layout';
@@ -37,11 +42,19 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
   ]
 );
 
-const { connectors } = getDefaultWallets({
+const { wallets } = getDefaultWallets({
   appName: 'OSIRIS',
   projectId: process.env.REACT_APP_WALLET_CONNECT_PROJECT_ID!,
   chains,
 });
+
+const connectors = connectorsForWallets([
+  ...wallets,
+  {
+    groupName: 'Other',
+    wallets: [rabbyWallet({ chains })],
+  },
+]);
 
 const config = createConfig({
   autoConnect: true,
