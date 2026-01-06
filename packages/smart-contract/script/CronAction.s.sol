@@ -7,11 +7,12 @@ import {ConfigLib} from "./lib/configLib.sol";
 
 contract CronActionPause is Script {
     function run() external {
-        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig = ConfigLib.readReactiveNetworkConfig();
+        // Read reactive network from environment variable, default to "lasna"
+        string memory reactiveNetwork = vm.envOr("REACTIVE_NETWORK", string("lasna"));
+        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig = ConfigLib.readReactiveNetworkConfig(reactiveNetwork);
         address cronReactiveAddress = reactiveNetworkConfig.reactiveContract;
 
         vm.startBroadcast();
-        // Deploy the Callback contract on Arbitrum Sepolia
         CronReactive cronReactive = CronReactive(payable(cronReactiveAddress));
         cronReactive.pause();
         console.log("Paused CronReactive at address:", cronReactiveAddress);
@@ -21,11 +22,12 @@ contract CronActionPause is Script {
 
 contract CronActionUnpause is Script {
     function run() external {
-        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig = ConfigLib.readReactiveNetworkConfig();
+        // Read reactive network from environment variable, default to "lasna"
+        string memory reactiveNetwork = vm.envOr("REACTIVE_NETWORK", string("lasna"));
+        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig = ConfigLib.readReactiveNetworkConfig(reactiveNetwork);
         address cronReactiveAddress = reactiveNetworkConfig.reactiveContract;
 
         vm.startBroadcast();
-        // Deploy the Callback contract on Arbitrum Sepolia
         CronReactive cronReactive = CronReactive(payable(cronReactiveAddress));
         cronReactive.resume();
         console.log("Unpaused CronReactive at address:", cronReactiveAddress);

@@ -1,7 +1,7 @@
 # OSIRIS
 
 OSIRIS is a pooled smart contract executing Dollar-Cost Averaging (DCA) from USDC to the native token via Uniswap v4.  
-Users deposit USDC, configure a plan (frequency + amount per period), and CronReactive (Reactive Network) periodically triggers the vault callback on Ethereum.
+Users deposit USDC, configure a plan (frequency + amount per period), and CronReactive (Reactive Network) periodically triggers the vault callback on Arbitrum.
 
 🌐 **[Try Osiris DApp](https://osiris-flax.vercel.app/)**
 
@@ -40,7 +40,7 @@ The smart contract package contains the core Osiris DCA logic and related contra
 ## Networks
 
 - **Reactive Mainnet**: CronReactive triggers the Osiris callback.
-- **Ethereum Mainnet**: Osiris contract, Uniswap v4 Router, Permit2, USDC, ETH, Chainlink price feeds.
+- **Arbitrum Mainnet**: Osiris contract, Uniswap v4 Router, Permit2, USDC, ETH, Chainlink price feeds.
 
 ---
 
@@ -64,9 +64,9 @@ The faucet provides 10 USDC per hour per address per hours
 
 ## Mainnet Deployment
 
-### Ethereum Mainnet Addresses
+### Arbitrum Mainnet Addresses
 
-- **Ethereum Mainnet**:
+- **Arbitrum Mainnet**:
   - Osiris Contract: [`0x5060963F11B2c4d95bB5e0bFcf52e76b1fb2aD56`](https://arbiscan.io/address/0x5060963F11B2c4d95bB5e0bFcf52e76b1fb2aD56)
   - Reactive Cron Contract: [`0x43b13636B59f9Dc05687Ac0CcDe2761707d3cD1d`](https://reactscan.net/address/0x31710397796a5fb5773c68de8ec104fe8bce0c23/contract/0x43b13636b59f9dc05687ac0ccde2761707d3cd1d?screen=transactions)
 
@@ -178,7 +178,7 @@ flowchart LR
         CR[CronReactive]
     end
 
-    subgraph E[Ethereum Mainnet]
+    subgraph E[Arbitrum Mainnet]
         V[Osiris]
         U4[Uniswap v4 Router]
         P2[Permit2]

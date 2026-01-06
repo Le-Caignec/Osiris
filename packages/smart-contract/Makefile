@@ -17,26 +17,45 @@ test-unit:
 # Deployment Commands
 deploy-reactive:
 	# Deploy Reactive Contract - Uses local account for testnet, Ledger for mainnet
-	@echo "Reading configuration..."
-	@if [ "$(CHAIN)" = "ethereum" ] || [ "$(CHAIN)" = "arbitrum" ]; then \
+	# Requires DESTINATION_CHAINS env var (single chain or comma-separated, e.g., "sepolia" or "arbitrum,base")
+	@if [ -z "$$DESTINATION_CHAINS" ]; then \
+		echo "Error: DESTINATION_CHAINS environment variable is required"; \
+		echo "Usage: DESTINATION_CHAINS=\"sepolia\" make deploy-reactive"; \
+		echo "   or: DESTINATION_CHAINS=\"arbitrum,base\" make deploy-reactive"; \
+		exit 1; \
+	fi; \
+	echo "Reading configuration..."; \
+	\
+	# Determine reactive network based on first chain in DESTINATION_CHAINS \
+	FIRST_CHAIN=$$(echo "$$DESTINATION_CHAINS" | cut -d',' -f1); \
+	if [ "$$FIRST_CHAIN" = "arbitrum" ] || [ "$$FIRST_CHAIN" = "base" ]; then \
 		REACTIVE_NETWORK="reactive"; \
 	else \
 		REACTIVE_NETWORK="lasna"; \
 	fi; \
 	CRON_TOPIC=$$(jq -r ".chains.$$REACTIVE_NETWORK.cronTopic" config/config.json); \
-	CALLBACK_CONTRACT=$$(jq -r '.chains.$(CHAIN).callbackContract' config/config.json); \
 	REACTIVE_SYSTEM=$$(jq -r ".chains.$$REACTIVE_NETWORK.reactiveSystemContract" config/config.json); \
-	DESTINATION_CHAIN_ID=$$(jq -r '.chains.$(CHAIN).chainId' config/config.json); \
 	REACTIVE_CHAIN_ID=$$(jq -r ".chains.$$REACTIVE_NETWORK.chainId" config/config.json); \
 	REACTIVE_RPC_URL=$$(jq -r ".chains.$$REACTIVE_NETWORK.rpcUrl" config/config.json); \
-	echo "Deploying CronReactive to $$REACTIVE_NETWORK network with:"; \
+	echo "Deploying CronReactive to $$REACTIVE_NETWORK network"; \
 	echo "  - Reactive Network: $$REACTIVE_NETWORK"; \
 	echo "  - Reactive Chain ID: $$REACTIVE_CHAIN_ID"; \
 	echo "  - Reactive RPC URL: $$REACTIVE_RPC_URL"; \
 	echo "  - Reactive System: $$REACTIVE_SYSTEM"; \
 	echo "  - Cron Topic: $$CRON_TOPIC"; \
-	echo "  - Destination Chain ($(CHAIN)) ID: $$DESTINATION_CHAIN_ID"; \
-	echo "  - Callback Contract: $$CALLBACK_CONTRACT"; \
+	echo "  - Destination Chains: $$DESTINATION_CHAINS"; \
+	\
+	# Build chain IDs and callbacks arrays \
+	CHAIN_IDS_LIST=$$(echo "$$DESTINATION_CHAINS" | tr ',' '\n' | while read chain; do \
+		jq -r ".chains.$$chain.chainId" config/config.json; \
+	done | tr '\n' ',' | sed 's/,$$//'); \
+	CALLBACKS_LIST=$$(echo "$$DESTINATION_CHAINS" | tr ',' '\n' | while read chain; do \
+		jq -r ".chains.$$chain.callbackContract" config/config.json; \
+	done | tr '\n' ',' | sed 's/,$$//'); \
+	CHAIN_IDS_ARRAY="[$$CHAIN_IDS_LIST]"; \
+	CALLBACKS_ARRAY="[$$CALLBACKS_LIST]"; \
+	echo "  - Chain IDs: $$CHAIN_IDS_ARRAY"; \
+	echo "  - Callbacks: $$CALLBACKS_ARRAY"; \
 	echo ""; \
 	read -p "Enter value to send (in REACT, e.g., 0.1, 15): " VALUE; \
 	if [ -z "$$VALUE" ]; then \
@@ -44,7 +63,7 @@ deploy-reactive:
 		echo "No value provided, using default: 0.1 REACT"; \
 	fi; \
 	echo "Deploying with $$VALUE REACT..."; \
-	if [ "$(CHAIN)" = "ethereum" ] || [ "$(CHAIN)" = "arbitrum" ]; then \
+	if [ "$$FIRST_CHAIN" = "arbitrum" ] || [ "$$FIRST_CHAIN" = "base" ]; then \
 		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
 		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
 		forge create --broadcast \
@@ -54,7 +73,7 @@ deploy-reactive:
 			--mnemonic-index $$LEDGER_IDX \
 			--value $${VALUE}ether \
 			src/CronReactive.sol:CronReactive \
-			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$DESTINATION_CHAIN_ID $$CALLBACK_CONTRACT; \
+			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$CHAIN_IDS_ARRAY $$CALLBACKS_ARRAY; \
 	else \
 		echo "Using local keystore account: $(ACCOUNT)"; \
 		forge create --broadcast \
@@ -63,7 +82,7 @@ deploy-reactive:
 			--account $(ACCOUNT) \
 			--value $${VALUE}ether \
 			src/CronReactive.sol:CronReactive \
-			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$DESTINATION_CHAIN_ID $$CALLBACK_CONTRACT; \
+			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$CHAIN_IDS_ARRAY $$CALLBACKS_ARRAY; \
 	fi
 
 deploy-osiris:
@@ -109,30 +128,22 @@ deploy-osiris:
 
 # Cron Management Commands
 pause-cron-reactive:
-	# Pause the CronReactive contract on reactive network
-	@if [ "$(CHAIN)" = "ethereum" ]; then \
-		REACTIVE_NETWORK="reactive"; \
-	else \
-		REACTIVE_NETWORK="lasna"; \
-	fi; \
+	# Pause the CronReactive contract on reactive network (pauses all destination chains)
+	@REACTIVE_NETWORK=$${REACTIVE_NETWORK:-lasna}; \
 	REACTIVE_RPC_URL=$$(jq -r ".chains.$$REACTIVE_NETWORK.rpcUrl" config/config.json); \
-	echo "Pausing CronReactive on $$REACTIVE_NETWORK network"; \
-	forge script script/CronAction.s.sol:CronActionPause \
+	echo "Pausing CronReactive on $$REACTIVE_NETWORK network (will pause all destination chains)"; \
+	REACTIVE_NETWORK=$$REACTIVE_NETWORK forge script script/CronAction.s.sol:CronActionPause \
 		--rpc-url $$REACTIVE_RPC_URL \
 		--account $(ACCOUNT) \
 		--broadcast \
 		-vvv
 
 unpause-cron-reactive:
-	# Unpause the CronReactive contract on reactive network
-	@if [ "$(CHAIN)" = "ethereum" ]; then \
-		REACTIVE_NETWORK="reactive"; \
-	else \
-		REACTIVE_NETWORK="lasna"; \
-	fi; \
+	# Unpause the CronReactive contract on reactive network (unpauses all destination chains)
+	@REACTIVE_NETWORK=$${REACTIVE_NETWORK:-lasna}; \
 	REACTIVE_RPC_URL=$$(jq -r ".chains.$$REACTIVE_NETWORK.rpcUrl" config/config.json); \
-	echo "Unpausing CronReactive on $$REACTIVE_NETWORK network"; \
-	forge script script/CronAction.s.sol:CronActionUnpause \
+	echo "Unpausing CronReactive on $$REACTIVE_NETWORK network (will unpause all destination chains)"; \
+	REACTIVE_NETWORK=$$REACTIVE_NETWORK forge script script/CronAction.s.sol:CronActionUnpause \
 		--rpc-url $$REACTIVE_RPC_URL \
 		--account $(ACCOUNT) \
 		--broadcast \
@@ -140,7 +151,7 @@ unpause-cron-reactive:
 
 # Osiris Management Commands
 trigger-osiris-callback:
-	# Trigger the Osiris callback on Sepolia/Ethereum
+	# Trigger the Osiris callback on Sepolia
 	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
 	echo "Triggering Osiris callback on $(CHAIN) with RPC: $$RPC_URL"; \
 	forge script script/OsirisAction.s.sol:TriggerOsirisCallback \

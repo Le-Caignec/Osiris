@@ -51,11 +51,11 @@ library ConfigLib {
         a.chainlinkEthUsdFeed = json.readAddress(string.concat(prefix, ".chainlinkEthUsdFeed"));
     }
 
-    // Reads the reactive addresses for the "lasna" chain
-    function readReactiveNetworkConfig() internal view returns (ReactiveNetworkConfig memory a) {
+    // Reads the reactive addresses for a given reactive network (e.g., "lasna" or "reactive")
+    function readReactiveNetworkConfig(string memory reactiveNetwork) internal view returns (ReactiveNetworkConfig memory a) {
         string memory path = "config/config.json";
         string memory json = _VM.readFile(path);
-        string memory prefix = string.concat(".chains.", "lasna");
+        string memory prefix = string.concat(".chains.", reactiveNetwork);
         a.reactiveSystemContract = json.readAddress(string.concat(prefix, ".reactiveSystemContract"));
         a.reactiveContract = json.readAddress(string.concat(prefix, ".reactiveContract"));
         a.cronTopic = json.readUint(string.concat(prefix, ".cronTopic"));
