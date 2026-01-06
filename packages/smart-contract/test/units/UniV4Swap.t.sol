@@ -28,7 +28,7 @@ contract UniV4SwapTest is Test {
     int24 constant TICK_SPACING = 60;
 
     function setUp() public {
-        string memory chain = vm.envOr("CHAIN", string("ethereum"));
+        string memory chain = vm.envOr("CHAIN", string("sepolia"));
         ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
         vm.createSelectFork(config.rpcUrl);
 
@@ -92,7 +92,8 @@ contract UniV4SwapTest is Test {
     // Swap WETH -> USDC
     function testSwapWETHForUSDC() public {
         vm.skip(
-            block.chainid == 11155111 || block.chainid == 42161, "Skip on Sepolia/Arbitrum fork due to low liquidity"
+            block.chainid == 11155111 || block.chainid == 42161 || block.chainid == 8453,
+            "Skip on Sepolia/Arbitrum/Base fork due to low liquidity"
         );
         vm.startPrank(user);
 
@@ -132,7 +133,8 @@ contract UniV4SwapTest is Test {
     // Swap USDC -> WETH
     function testSwapUSDCForWETH() public {
         vm.skip(
-            block.chainid == 11155111 || block.chainid == 42161, "Skip on Sepolia/Arbitrum fork due to low liquidity"
+            block.chainid == 11155111 || block.chainid == 42161 || block.chainid == 8453,
+            "Skip on Sepolia/Arbitrum/Base fork due to low liquidity"
         );
 
         deal(usdcAddress, user, 5_000 * 1e6);

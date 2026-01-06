@@ -4,12 +4,6 @@
 # Makefile for ReactiveDCA Smart Contracts
 ########################################################
 
-# Testing Commands
-fork-sepolia:
-	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
-	echo "Forking $(CHAIN) with RPC: $$RPC_URL"; \
-	anvil --fork-url $$RPC_URL --port 8545
-
 test-unit:
 	# Run units tests with gas reporting
 	forge test -vvv --gas-report --match-path "./test/units/**"
@@ -145,17 +139,6 @@ unpause-cron-reactive:
 	echo "Unpausing CronReactive on $$REACTIVE_NETWORK network (will unpause all destination chains)"; \
 	REACTIVE_NETWORK=$$REACTIVE_NETWORK forge script script/CronAction.s.sol:CronActionUnpause \
 		--rpc-url $$REACTIVE_RPC_URL \
-		--account $(ACCOUNT) \
-		--broadcast \
-		-vvv
-
-# Osiris Management Commands
-trigger-osiris-callback:
-	# Trigger the Osiris callback on Sepolia
-	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
-	echo "Triggering Osiris callback on $(CHAIN) with RPC: $$RPC_URL"; \
-	forge script script/OsirisAction.s.sol:TriggerOsirisCallback \
-		--rpc-url $$RPC_URL \
 		--account $(ACCOUNT) \
 		--broadcast \
 		-vvv
