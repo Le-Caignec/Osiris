@@ -37,7 +37,12 @@ contract OsirisTest is Test {
 
     function setUp() public {
         // Read from config.json like in UniV4Swap tests
-        string memory chain = vm.envOr("CHAIN", string("sepolia"));
+        string memory chain;
+        try vm.envString("CHAIN") returns (string memory envChain) {
+            chain = bytes(envChain).length > 0 ? envChain : "sepolia";
+        } catch {
+            chain = "sepolia";
+        }
         ConfigLib.DestinationNetworkConfig memory cfg = ConfigLib.readDestinationNetworkConfig(chain);
         vm.createSelectFork(cfg.rpcUrl);
 
