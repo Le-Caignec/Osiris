@@ -35,7 +35,7 @@ Frontend React pour la plateforme OSIRIS - Automatisation des investissements De
 
 ```bash
 cd packages/front
-npm install
+npm install --force
 ```
 
 ## Configuration
@@ -54,6 +54,10 @@ export const CONTRACT_ADDRESSES = {
     osiris: '0x...', // Adresse du contrat Osiris sur Sepolia
     usdc: '0x...',   // Adresse USDC sur Sepolia
   },
+  "base-sepolia": {
+    osiris: '0x...', // Adresse du contrat Osiris sur Base Sepolia
+    usdc: '0x...',   // Adresse USDC sur Base Sepolia
+  }
 };
 ```
 

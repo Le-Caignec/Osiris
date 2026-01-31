@@ -47,6 +47,7 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const getContractAddresses = () => {
     if (chainId === 42161) return CONTRACT_ADDRESSES.arbitrum;
     if (chainId === 11155111) return CONTRACT_ADDRESSES.sepolia;
+    if (chainId === 84532) return CONTRACT_ADDRESSES['base-sepolia'];
     return CONTRACT_ADDRESSES.sepolia; // Default to Sepolia
   };
 
