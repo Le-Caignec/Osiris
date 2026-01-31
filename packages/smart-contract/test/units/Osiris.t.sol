@@ -174,8 +174,8 @@ contract OsirisTest is Test {
     function test_callback_distributes_native_proRata_twoEligible_and_updatesUsdc() public {
         // Mock will output exactly 1 ether to distribute
         routerMock.setMockOut(1 ether);
-        // Seed vault with native so claims can transfer
-        vm.deal(address(vault), 1 ether);
+        // Seed mock with native so it can transfer during swap
+        vm.deal(address(routerMock), 1 ether);
 
         // Alice: 10 USDC, Bob: 30 USDC per period; both Daily and eligible
         deal(usdcAddress, alice, 20e6);
@@ -231,7 +231,8 @@ contract OsirisTest is Test {
     function test_callback_skips_ineligible_weekly_user_keepsUsdc_and_daily_getsAllEth() public {
         // Mock will output 2 ether; only Alice daily is eligible, so she gets all
         routerMock.setMockOut(2 ether);
-        vm.deal(address(vault), 2 ether);
+        // Seed mock with native so it can transfer during swap
+        vm.deal(address(routerMock), 2 ether);
 
         // Alice daily plan
         deal(usdcAddress, alice, 10e6);
@@ -312,7 +313,8 @@ contract OsirisTest is Test {
     function test_getUserNative_afterCallbackDistribution() public {
         // setup mock output
         routerMock.setMockOut(5 ether);
-        vm.deal(address(vault), 5 ether);
+        // Seed mock with native so it can transfer during swap
+        vm.deal(address(routerMock), 5 ether);
 
         // Alice 40, Bob 60 -> total 100 units => pro‑rata 40% / 60%
         deal(usdcAddress, alice, 80e6);

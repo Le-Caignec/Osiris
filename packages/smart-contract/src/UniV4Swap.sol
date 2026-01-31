@@ -51,10 +51,6 @@ contract UniV4Swap is ReentrancyGuard {
                 tokenIn, address(UNISWAP_ROUTER), type(uint160).max, uint48(block.timestamp + 365 days)
             );
         }
-        // Encode the Universal Router command
-        bytes memory commands = abi.encodePacked(uint8(Commands.V4_SWAP));
-        bytes[] memory inputs = new bytes[](1);
-
         // Encode V4Router actions
         bytes memory actions =
             abi.encodePacked(uint8(Actions.SWAP_EXACT_IN_SINGLE), uint8(Actions.SETTLE_ALL), uint8(Actions.TAKE_ALL));
@@ -73,8 +69,13 @@ contract UniV4Swap is ReentrancyGuard {
         params[1] = abi.encode(inCurrency, amountIn);
         params[2] = abi.encode(outCurrency, minAmountOut);
 
-        // Combine actions and params into inputs
+        // Encode the Universal Router command
+        bytes memory commands = abi.encodePacked(uint8(Commands.V4_SWAP));
+        bytes[] memory inputs = new bytes[](1);
         inputs[0] = abi.encode(actions, params);
+
+        // Record balance before swap to measure actual output
+        uint256 balanceBefore = outCurrency.balanceOf(address(this));
 
         // Execute the swap
         uint256 deadline = block.timestamp + 20;
@@ -87,8 +88,8 @@ contract UniV4Swap is ReentrancyGuard {
             UNISWAP_ROUTER.execute(commands, inputs, deadline);
         }
 
-        // Measure output on this contract (direction-aware)
-        amountOut = outCurrency.balanceOf(address(this));
+        // Measure actual output received (difference from before)
+        amountOut = outCurrency.balanceOf(address(this)) - balanceBefore;
         if (amountOut < minAmountOut) {
             revert InsufficientOutput(amountOut, minAmountOut);
         }

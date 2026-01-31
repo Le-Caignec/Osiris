@@ -22,7 +22,8 @@ contract UniV4SwapTest is Test {
     IERC20 private usdc;
 
     UniV4Swap private uni;
-    address private user = makeAddr("user");
+    // Use a fresh address that won't have code deployed on fork networks
+    address private user;
 
     uint24 constant FEE = 3000; // 0.3%
     int24 constant TICK_SPACING = 60;
@@ -35,6 +36,9 @@ contract UniV4SwapTest is Test {
             chain = "sepolia";
         }
         ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
+
+        // Create a fresh user address after fork to avoid collisions with deployed contracts
+        user = makeAddr(string.concat("univ4swap_test_user_", chain));
         vm.createSelectFork(config.rpcUrl);
 
         wethAddress = config.weth;

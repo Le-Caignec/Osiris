@@ -12,11 +12,11 @@ contract CronReactive is AbstractPausableReactive {
     mapping(uint256 => address) public destinationCallbacks;
     // Array to track all registered chain IDs
     uint256[] public destinationChainIds;
-    // Mapping to check if a chain ID is registered
-    mapping(uint256 => bool) public isChainIdRegistered;
 
     event DestinationChainAdded(uint256 indexed chainId, address indexed callback);
     event DestinationChainRemoved(uint256 indexed chainId);
+
+    error InvalidCallbackAddress();
 
     constructor(
         address _service,
@@ -69,51 +69,11 @@ contract CronReactive is AbstractPausableReactive {
     }
 
     /**
-     * @notice Add a new destination chain with its callback address
-     * @param _chainId The chain ID of the destination
-     * @param _callback The callback contract address on that chain
-     */
-    function addDestinationChain(uint256 _chainId, address _callback) external onlyOwner {
-        require(_callback != address(0), "CronReactive: callback cannot be zero address");
-        _addDestinationChain(_chainId, _callback);
-    }
-
-    /**
-     * @notice Remove a destination chain
-     * @param _chainId The chain ID to remove
-     */
-    function removeDestinationChain(uint256 _chainId) external onlyOwner {
-        require(isChainIdRegistered[_chainId], "CronReactive: chain ID not registered");
-        
-        delete destinationCallbacks[_chainId];
-        isChainIdRegistered[_chainId] = false;
-        
-        // Remove from array
-        for (uint256 i = 0; i < destinationChainIds.length; i++) {
-            if (destinationChainIds[i] == _chainId) {
-                destinationChainIds[i] = destinationChainIds[destinationChainIds.length - 1];
-                destinationChainIds.pop();
-                break;
-            }
-        }
-        
-        emit DestinationChainRemoved(_chainId);
-    }
-
-    /**
      * @notice Get all registered destination chain IDs
      * @return Array of chain IDs
      */
     function getDestinationChainIds() external view returns (uint256[] memory) {
         return destinationChainIds;
-    }
-
-    /**
-     * @notice Get the number of registered destination chains
-     * @return The count of registered chains
-     */
-    function getDestinationChainCount() external view returns (uint256) {
-        return destinationChainIds.length;
     }
 
 
@@ -123,11 +83,11 @@ contract CronReactive is AbstractPausableReactive {
      * @param _callback The callback contract address on that chain
      */
     function _addDestinationChain(uint256 _chainId, address _callback) internal {
-        require(!isChainIdRegistered[_chainId], "CronReactive: chain ID already registered");
-        
+        if (_callback == address(0)) {
+            revert InvalidCallbackAddress();
+        }
         destinationCallbacks[_chainId] = _callback;
         destinationChainIds.push(_chainId);
-        isChainIdRegistered[_chainId] = true;
         
         emit DestinationChainAdded(_chainId, _callback);
     }

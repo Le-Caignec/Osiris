@@ -6,7 +6,7 @@
 
 test-unit:
 	# Run units tests with gas reporting
-	forge test -vvv --gas-report --match-path "./test/units/**"
+	forge test -vvv --match-path "./test/units/**"
 
 # Deployment Commands
 deploy-reactive:

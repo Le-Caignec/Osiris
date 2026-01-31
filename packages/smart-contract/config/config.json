@@ -14,7 +14,7 @@
         },
         "base-sepolia": {
             "chainId": 84532,
-            "rpcUrl": "https://base.gateway.tenderly.co",
+            "rpcUrl": "https://base-sepolia.gateway.tenderly.co",
             "uniswapUniversalRouter": "0x492e6456d9528771018deb9e87ef7750ef184104",
             "uniswapPoolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
             "uniswapPermit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
