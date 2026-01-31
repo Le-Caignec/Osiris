@@ -9,7 +9,8 @@ contract CronActionPause is Script {
     function run() external {
         // Read reactive network from environment variable, default to "lasna"
         string memory reactiveNetwork = vm.envOr("REACTIVE_NETWORK", string("lasna"));
-        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig = ConfigLib.readReactiveNetworkConfig(reactiveNetwork);
+        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig =
+            ConfigLib.readReactiveNetworkConfig(reactiveNetwork);
         address cronReactiveAddress = reactiveNetworkConfig.reactiveContract;
 
         vm.startBroadcast();
@@ -24,7 +25,8 @@ contract CronActionUnpause is Script {
     function run() external {
         // Read reactive network from environment variable, default to "lasna"
         string memory reactiveNetwork = vm.envOr("REACTIVE_NETWORK", string("lasna"));
-        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig = ConfigLib.readReactiveNetworkConfig(reactiveNetwork);
+        ConfigLib.ReactiveNetworkConfig memory reactiveNetworkConfig =
+            ConfigLib.readReactiveNetworkConfig(reactiveNetwork);
         address cronReactiveAddress = reactiveNetworkConfig.reactiveContract;
 
         vm.startBroadcast();

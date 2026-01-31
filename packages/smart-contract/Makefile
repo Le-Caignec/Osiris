@@ -12,20 +12,26 @@ test-unit:
 deploy-reactive:
 	# Deploy Reactive Contract - Uses local account for testnet, Ledger for mainnet
 	# Requires DESTINATION_CHAINS env var (single chain or comma-separated, e.g., "sepolia" or "arbitrum,base")
+	# Testnets: sepolia, base-sepolia -> lasna reactive network
+	# Mainnets: arbitrum, base -> reactive mainnet
 	@if [ -z "$$DESTINATION_CHAINS" ]; then \
 		echo "Error: DESTINATION_CHAINS environment variable is required"; \
 		echo "Usage: DESTINATION_CHAINS=\"sepolia\" make deploy-reactive"; \
+		echo "   or: DESTINATION_CHAINS=\"base-sepolia\" make deploy-reactive"; \
 		echo "   or: DESTINATION_CHAINS=\"arbitrum,base\" make deploy-reactive"; \
 		exit 1; \
 	fi; \
 	echo "Reading configuration..."; \
 	\
 	# Determine reactive network based on first chain in DESTINATION_CHAINS \
+	# Mainnets (arbitrum, base) use reactive mainnet, testnets use lasna \
 	FIRST_CHAIN=$$(echo "$$DESTINATION_CHAINS" | cut -d',' -f1); \
 	if [ "$$FIRST_CHAIN" = "arbitrum" ] || [ "$$FIRST_CHAIN" = "base" ]; then \
 		REACTIVE_NETWORK="reactive"; \
+		IS_MAINNET="true"; \
 	else \
 		REACTIVE_NETWORK="lasna"; \
+		IS_MAINNET="false"; \
 	fi; \
 	CRON_TOPIC=$$(jq -r ".chains.$$REACTIVE_NETWORK.cronTopic" config/config.json); \
 	REACTIVE_SYSTEM=$$(jq -r ".chains.$$REACTIVE_NETWORK.reactiveSystemContract" config/config.json); \
@@ -57,7 +63,7 @@ deploy-reactive:
 		echo "No value provided, using default: 0.1 REACT"; \
 	fi; \
 	echo "Deploying with $$VALUE REACT..."; \
-	if [ "$$FIRST_CHAIN" = "arbitrum" ] || [ "$$FIRST_CHAIN" = "base" ]; then \
+	if [ "$$IS_MAINNET" = "true" ]; then \
 		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
 		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
 		forge create --broadcast \
@@ -80,19 +86,17 @@ deploy-reactive:
 	fi
 
 deploy-osiris:
-	# Deploy Osiris - Uses local account for Sepolia, Ledger for mainnet chains
-	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
-	echo "Deploying Osiris to $(CHAIN) with RPC: $$RPC_URL"; \
-	echo ""; \
-	read -p "Fund callback proxy for new Osiris contract? Enter amount in ETH (0 to skip): " FUND_ETH; \
-	if [ -z "$$FUND_ETH" ]; then \
-		FUND_ETH="0"; \
-	fi; \
-	FUND_WEI=$$(cast to-wei $$FUND_ETH ether 2>/dev/null || echo "0"); \
-	echo "Will fund callback proxy with: $$FUND_ETH ETH ($$FUND_WEI wei)"; \
-	echo ""; \
-	if [ "$(CHAIN)" = "sepolia" ]; then \
-		echo "Using local keystore account: $(ACCOUNT)"; \
+	# Deploy Osiris - Uses local account for testnets (sepolia, base-sepolia), Ledger for mainnets
+	@RPC_URL=$$(jq -r '.chains["$(CHAIN)"].rpcUrl' config/config.json) && \
+	echo "Deploying Osiris to $(CHAIN) with RPC: $$RPC_URL" && \
+	echo "" && \
+	read -p "Fund callback proxy for new Osiris contract? Enter amount in ETH (0 to skip): " FUND_ETH && \
+	FUND_ETH=$${FUND_ETH:-0} && \
+	FUND_WEI=$$(cast to-wei $$FUND_ETH ether 2>/dev/null || echo "0") && \
+	echo "Will fund callback proxy with: $$FUND_ETH ETH ($$FUND_WEI wei)" && \
+	echo "" && \
+	if [ "$(CHAIN)" = "sepolia" ] || [ "$(CHAIN)" = "base-sepolia" ]; then \
+		echo "Using local keystore account: $(ACCOUNT)" && \
 		FUND_AMOUNT=$$FUND_WEI forge script script/Deploy.s.sol:DeployOsiris \
 			--rpc-url $$RPC_URL \
 			--account $(ACCOUNT) \
@@ -102,12 +106,12 @@ deploy-osiris:
 			--verifier-api-key $(ETHERSCAN_API_KEY) \
 			-vvv; \
 	else \
-		echo "Please connect your Ledger and unlock it..."; \
-		echo "Make sure the Ethereum app is open on your Ledger"; \
-		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
-		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
-		SENDER_ADDR=$$(cast wallet address --ledger --mnemonic-index $$LEDGER_IDX); \
-		echo "Ledger address: $$SENDER_ADDR"; \
+		echo "Please connect your Ledger and unlock it..." && \
+		echo "Make sure the Ethereum app is open on your Ledger" && \
+		LEDGER_IDX=$${LEDGER_INDEX:-0} && \
+		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)" && \
+		SENDER_ADDR=$$(cast wallet address --ledger --mnemonic-index $$LEDGER_IDX) && \
+		echo "Ledger address: $$SENDER_ADDR" && \
 		FUND_AMOUNT=$$FUND_WEI forge script script/Deploy.s.sol:DeployOsiris \
 			--rpc-url $$RPC_URL \
 			--ledger \
@@ -145,9 +149,10 @@ unpause-cron-reactive:
 
 fund-callback-proxy:
 	# Send funds to the callback proxy contract
-	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
-	CALLBACK_PROXY=$$(jq -r '.chains.$(CHAIN).callbackProxyContract' config/config.json); \
-	CALLBACK_CONTRACT=$$(jq -r '.chains.$(CHAIN).callbackContract' config/config.json); \
+	# Uses local account for testnets (sepolia, base-sepolia), Ledger for mainnets
+	@RPC_URL=$$(jq -r '.chains["$(CHAIN)"].rpcUrl' config/config.json); \
+	CALLBACK_PROXY=$$(jq -r '.chains["$(CHAIN)"].callbackProxyContract' config/config.json); \
+	CALLBACK_CONTRACT=$$(jq -r '.chains["$(CHAIN)"].callbackContract' config/config.json); \
 	echo "==========================================="; \
 	echo "Funding Callback Proxy on $(CHAIN)"; \
 	echo "==========================================="; \
@@ -163,7 +168,7 @@ fund-callback-proxy:
 	fi; \
 	echo ""; \
 	echo "Sending $${AMOUNT} ETH to callback proxy..."; \
-	if [ "$(CHAIN)" = "sepolia" ]; then \
+	if [ "$(CHAIN)" = "sepolia" ] || [ "$(CHAIN)" = "base-sepolia" ]; then \
 		echo "Using local keystore account: $(ACCOUNT)"; \
 		cast send $$CALLBACK_PROXY \
 			"depositTo(address)" $$CALLBACK_CONTRACT \
@@ -184,9 +189,9 @@ fund-callback-proxy:
 
 check-callback-balance:
 	# Check the reserves balance in the callback proxy
-	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
-	CALLBACK_PROXY=$$(jq -r '.chains.$(CHAIN).callbackProxyContract' config/config.json); \
-	CALLBACK_CONTRACT=$$(jq -r '.chains.$(CHAIN).callbackContract' config/config.json); \
+	@RPC_URL=$$(jq -r '.chains["$(CHAIN)"].rpcUrl' config/config.json); \
+	CALLBACK_PROXY=$$(jq -r '.chains["$(CHAIN)"].callbackProxyContract' config/config.json); \
+	CALLBACK_CONTRACT=$$(jq -r '.chains["$(CHAIN)"].callbackContract' config/config.json); \
 	echo "==========================================="; \
 	echo "Checking Callback Balance on $(CHAIN)"; \
 	echo "==========================================="; \
@@ -200,9 +205,9 @@ check-callback-balance:
 
 check-callback-debts:
 	# Check the debts balance in the callback proxy
-	@RPC_URL=$$(jq -r '.chains.$(CHAIN).rpcUrl' config/config.json); \
-	CALLBACK_PROXY=$$(jq -r '.chains.$(CHAIN).callbackProxyContract' config/config.json); \
-	CALLBACK_CONTRACT=$$(jq -r '.chains.$(CHAIN).callbackContract' config/config.json); \
+	@RPC_URL=$$(jq -r '.chains["$(CHAIN)"].rpcUrl' config/config.json); \
+	CALLBACK_PROXY=$$(jq -r '.chains["$(CHAIN)"].callbackProxyContract' config/config.json); \
+	CALLBACK_CONTRACT=$$(jq -r '.chains["$(CHAIN)"].callbackContract' config/config.json); \
 	echo "==========================================="; \
 	echo "Checking Callback Debts on $(CHAIN)"; \
 	echo "==========================================="; \

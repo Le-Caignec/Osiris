@@ -7,7 +7,7 @@ import {AbstractPausableReactive} from "@reactive-contract/abstract-base/Abstrac
 contract CronReactive is AbstractPausableReactive {
     uint256 public cronTopic;
     uint64 private constant GAS_LIMIT = 1000000;
-    
+
     // Mapping from chain ID to callback address
     mapping(uint256 => address) public destinationCallbacks;
     // Array to track all registered chain IDs
@@ -27,10 +27,7 @@ contract CronReactive is AbstractPausableReactive {
         service = ISystemContract(payable(_service));
         cronTopic = _cronTopic;
 
-        require(
-            _destinationChainIds.length == _callbacks.length,
-            "CronReactive: arrays length mismatch"
-        );
+        require(_destinationChainIds.length == _callbacks.length, "CronReactive: arrays length mismatch");
         require(_destinationChainIds.length > 0, "CronReactive: at least one destination required");
 
         if (!vm) {
@@ -56,14 +53,14 @@ contract CronReactive is AbstractPausableReactive {
     function react(LogRecord calldata log) external vmOnly {
         if (log.topic_0 == cronTopic) {
             bytes memory payload = abi.encodeWithSignature("callback(address)", address(0));
-            
+
             // Emit callback for each registered destination chain
             for (uint256 i = 0; i < destinationChainIds.length; i++) {
                 uint256 chainId = destinationChainIds[i];
                 address callback = destinationCallbacks[chainId];
                 if (callback != address(0)) {
                     emit Callback(chainId, callback, GAS_LIMIT, payload);
-        }
+                }
             }
         }
     }
@@ -76,7 +73,6 @@ contract CronReactive is AbstractPausableReactive {
         return destinationChainIds;
     }
 
-
     /**
      * @notice Internal function to add a destination chain
      * @param _chainId The chain ID of the destination
@@ -88,7 +84,7 @@ contract CronReactive is AbstractPausableReactive {
         }
         destinationCallbacks[_chainId] = _callback;
         destinationChainIds.push(_chainId);
-        
+
         emit DestinationChainAdded(_chainId, _callback);
     }
 }

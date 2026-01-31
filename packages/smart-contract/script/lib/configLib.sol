@@ -52,7 +52,11 @@ library ConfigLib {
     }
 
     // Reads the reactive addresses for a given reactive network (e.g., "lasna" or "reactive")
-    function readReactiveNetworkConfig(string memory reactiveNetwork) internal view returns (ReactiveNetworkConfig memory a) {
+    function readReactiveNetworkConfig(string memory reactiveNetwork)
+        internal
+        view
+        returns (ReactiveNetworkConfig memory a)
+    {
         string memory path = "config/config.json";
         string memory json = _VM.readFile(path);
         string memory prefix = string.concat(".chains.", reactiveNetwork);
