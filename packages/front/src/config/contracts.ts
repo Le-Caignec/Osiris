@@ -20,7 +20,7 @@ export const CHAIN = {
   'base-sepolia': {
     contracts: {
       osiris: '0x3f4f490060b883396cadda837d84b9a54e17cdeb',
-      usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
     },
     rpc: 'https://base-sepolia.gateway.tenderly.co',
   },
