@@ -21,7 +21,7 @@
             "weth": "0x4200000000000000000000000000000000000006",
             "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
             "callbackProxyContract": "0xa6eA49Ed671B8a4dfCDd34E36b7a75Ac79B8A5a6",
-            "callbackContract": "0x0000000000000000000000000000000000000000",
+            "callbackContract": "0x3f4f490060b883396cadda837d84b9a54e17cdeb",
             "chainlinkEthUsdFeed": "0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1"
         },
         "lasna": {

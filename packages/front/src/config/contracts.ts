@@ -16,12 +16,21 @@ export const CHAIN = {
     },
     rpc: 'https://gateway.tenderly.co/public/sepolia',
   },
+  // Base Sepolia Testnet
+  'base-sepolia': {
+    contracts: {
+      osiris: '0x3f4f490060b883396cadda837d84b9a54e17cdeb',
+      usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    },
+    rpc: 'https://base-sepolia.gateway.tenderly.co',
+  },
 };
 
 // Legacy exports for backward compatibility
 export const CONTRACT_ADDRESSES = {
   arbitrum: CHAIN.arbitrum.contracts,
   sepolia: CHAIN.sepolia.contracts,
+  'base-sepolia': CHAIN['base-sepolia'].contracts,
 };
 
 // Contract ABI - Osiris contract interface
