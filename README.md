@@ -39,8 +39,14 @@ The smart contract package contains the core Osiris DCA logic and related contra
 
 ## Networks
 
+### Mainnet
 - **Reactive Mainnet**: CronReactive triggers the Osiris callback.
 - **Arbitrum Mainnet**: Osiris contract, Uniswap v4 Router, Permit2, USDC, ETH, Chainlink price feeds.
+
+### Testnet
+- **Lasna (Reactive Testnet)**: CronReactive triggers callbacks on multiple destination chains.
+- **Sepolia**: Osiris contract for Ethereum testnet.
+- **Base Sepolia**: Osiris contract for Base testnet.
 
 ---
 
@@ -48,9 +54,15 @@ The smart contract package contains the core Osiris DCA logic and related contra
 
 See addresses in `packages/front/src/config/contracts.ts`:
 
+- **Lasna (Reactive Testnet)**:
+  - CronReactive Contract (multi-network): [`0x80eABBC20389106796719d3Efc911A93084c7d97`](https://lasna.reactscan.net/address/0x5104f76bce6e34f89227c6c570e61d06186b5724/contract/0x80eABBC20389106796719d3Efc911A93084c7d97)
+    - Triggers callbacks on both Sepolia and Base Sepolia
+
 - **Sepolia Testnet**:
   - Osiris Contract: [`0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7`](https://sepolia.etherscan.io/address/0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7)
-  - Reactive Cron Contract: [`0xc14Ce8A395c2Bfd73977277eC3e8bDF584912F56`](https://lasna.reactscan.net/address/0x5104f76bce6e34f89227c6c570e61d06186b5724/contract/0xc14ce8a395c2bfd73977277ec3e8bdf584912f56)
+
+- **Base Sepolia Testnet**:
+  - Osiris Contract: [`0x45b2cd08b08db052da24d93affb6a8ae786623b4`](https://sepolia.basescan.org/address/0x45b2cd08b08db052da24d93affb6a8ae786623b4)
 
 ### Testing Setup
 

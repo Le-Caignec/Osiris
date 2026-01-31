@@ -22,7 +22,7 @@ export const CHAIN = {
       osiris: '0x45b2cd08b08db052da24d93affb6a8ae786623b4',
       usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
     },
-    rpc: 'https://base-sepolia.gateway.tenderly.co',
+    rpc: 'https://base-sepolia-rpc.publicnode.com',
   },
 };
 

@@ -14,7 +14,8 @@ deploy-reactive:
 	# Requires DESTINATION_CHAINS env var (single chain or comma-separated, e.g., "sepolia" or "arbitrum,base")
 	# Testnets: sepolia, base-sepolia -> lasna reactive network
 	# Mainnets: arbitrum, base -> reactive mainnet
-	@if [ -z "$$DESTINATION_CHAINS" ]; then \
+	@DESTINATION_CHAINS="$(DESTINATION_CHAINS)"; \
+	if [ -z "$$DESTINATION_CHAINS" ]; then \
 		echo "Error: DESTINATION_CHAINS environment variable is required"; \
 		echo "Usage: DESTINATION_CHAINS=\"sepolia\" make deploy-reactive"; \
 		echo "   or: DESTINATION_CHAINS=\"base-sepolia\" make deploy-reactive"; \
@@ -22,9 +23,6 @@ deploy-reactive:
 		exit 1; \
 	fi; \
 	echo "Reading configuration..."; \
-	\
-	# Determine reactive network based on first chain in DESTINATION_CHAINS \
-	# Mainnets (arbitrum, base) use reactive mainnet, testnets use lasna \
 	FIRST_CHAIN=$$(echo "$$DESTINATION_CHAINS" | cut -d',' -f1); \
 	if [ "$$FIRST_CHAIN" = "arbitrum" ] || [ "$$FIRST_CHAIN" = "base" ]; then \
 		REACTIVE_NETWORK="reactive"; \
@@ -44,13 +42,11 @@ deploy-reactive:
 	echo "  - Reactive System: $$REACTIVE_SYSTEM"; \
 	echo "  - Cron Topic: $$CRON_TOPIC"; \
 	echo "  - Destination Chains: $$DESTINATION_CHAINS"; \
-	\
-	# Build chain IDs and callbacks arrays \
 	CHAIN_IDS_LIST=$$(echo "$$DESTINATION_CHAINS" | tr ',' '\n' | while read chain; do \
-		jq -r ".chains.$$chain.chainId" config/config.json; \
+		jq -r ".chains[\"$$chain\"].chainId" config/config.json; \
 	done | tr '\n' ',' | sed 's/,$$//'); \
 	CALLBACKS_LIST=$$(echo "$$DESTINATION_CHAINS" | tr ',' '\n' | while read chain; do \
-		jq -r ".chains.$$chain.callbackContract" config/config.json; \
+		jq -r ".chains[\"$$chain\"].callbackContract" config/config.json; \
 	done | tr '\n' ',' | sed 's/,$$//'); \
 	CHAIN_IDS_ARRAY="[$$CHAIN_IDS_LIST]"; \
 	CALLBACKS_ARRAY="[$$CALLBACKS_LIST]"; \
@@ -64,7 +60,7 @@ deploy-reactive:
 	fi; \
 	echo "Deploying with $$VALUE REACT..."; \
 	if [ "$$IS_MAINNET" = "true" ]; then \
-		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
+		LEDGER_IDX=$${LEDGER_INDEX:-0}; \
 		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
 		forge create --broadcast \
 			--rpc-url $$REACTIVE_RPC_URL \
@@ -176,7 +172,7 @@ fund-callback-proxy:
 			--account $(ACCOUNT) \
 			--value $${AMOUNT}ether; \
 	else \
-		LEDGER_IDX=$(if $(LEDGER_INDEX),$(LEDGER_INDEX),0); \
+		LEDGER_IDX=$${LEDGER_INDEX:-0}; \
 		echo "Using Ledger account index: $$LEDGER_IDX"; \
 		cast send $$CALLBACK_PROXY \
 			"depositTo(address)" $$CALLBACK_CONTRACT \

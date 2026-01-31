@@ -14,7 +14,7 @@
         },
         "base-sepolia": {
             "chainId": 84532,
-            "rpcUrl": "https://base-sepolia.gateway.tenderly.co",
+            "rpcUrl": "https://base-sepolia-rpc.publicnode.com",
             "uniswapUniversalRouter": "0x492e6456d9528771018deb9e87ef7750ef184104",
             "uniswapPoolManager": "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408",
             "uniswapPermit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
@@ -29,7 +29,7 @@
             "rpcUrl": "https://lasna-rpc.rnk.dev/",
             "cronTopic": "0xe20b31294d84c3661ddc8f423abb9c70310d0cf172aa2714ead78029b325e3f4",
             "reactiveSystemContract":"0x0000000000000000000000000000000000fffFfF",
-            "reactiveContract":"0xc14Ce8A395c2Bfd73977277eC3e8bDF584912F56"
+            "reactiveContract":"0x80eABBC20389106796719d3Efc911A93084c7d97"
         },
         "reactive": {
             "chainId": 1597,
