@@ -24,6 +24,15 @@ export const CHAIN = {
     },
     rpc: 'https://base-sepolia-rpc.publicnode.com',
   },
+  // Base Mainnet
+  base: {
+    contracts: {
+      osiris: '0x0000000000000000000000000000000000000000', // TODO: deploy and update
+      usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      wReact: '0xedacc73ae9f73235934f72a43388404e4a2c4a24',
+    },
+    rpc: 'https://mainnet.base.org',
+  },
 };
 
 // Legacy exports for backward compatibility
@@ -31,6 +40,7 @@ export const CONTRACT_ADDRESSES = {
   arbitrum: CHAIN.arbitrum.contracts,
   sepolia: CHAIN.sepolia.contracts,
   'base-sepolia': CHAIN['base-sepolia'].contracts,
+  base: CHAIN.base.contracts,
 };
 
 // Contract ABI - Osiris contract interface
@@ -104,6 +114,17 @@ export const OSIRIS_ABI = [
       { name: 'usersProcessed', type: 'uint256', indexed: false },
       { name: 'totalInUsdc', type: 'uint256', indexed: false },
       { name: 'totalOutNative', type: 'uint256', indexed: false },
+      { name: 'totalOutWReact', type: 'uint256', indexed: false },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'ClaimedToken',
+    inputs: [
+      { name: 'user', type: 'address', indexed: true },
+      { name: 'token', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
     ],
     anonymous: false,
   },
@@ -112,6 +133,11 @@ export const OSIRIS_ABI = [
   {
     type: 'error',
     name: 'AmountZero',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'WReactNotConfigured',
     inputs: [],
   },
   {
@@ -162,6 +188,16 @@ export const OSIRIS_ABI = [
     outputs: [],
     stateMutability: 'nonpayable',
   },
+  {
+    type: 'function',
+    name: 'claimToken',
+    inputs: [
+      { name: 'token', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
 
   // Plan management
   {
@@ -172,6 +208,7 @@ export const OSIRIS_ABI = [
       { name: 'amountPerPeriod', type: 'uint256' },
       { name: 'maxBudgetPerExecution', type: 'uint256' },
       { name: 'enableVolatilityFilter', type: 'bool' },
+      { name: 'targetToken', type: 'uint8' },
     ],
     outputs: [],
     stateMutability: 'nonpayable',
@@ -224,6 +261,13 @@ export const OSIRIS_ABI = [
   },
   {
     type: 'function',
+    name: 'getUserWReact',
+    inputs: [{ name: 'user', type: 'address' }],
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'getUserPlan',
     inputs: [{ name: 'user', type: 'address' }],
     outputs: [
@@ -236,6 +280,7 @@ export const OSIRIS_ABI = [
           { name: 'nextExecutionTimestamp', type: 'uint256' },
           { name: 'maxBudgetPerExecution', type: 'uint256' },
           { name: 'enableVolatilityFilter', type: 'bool' },
+          { name: 'targetToken', type: 'uint8' },
         ],
       },
     ],
@@ -350,3 +395,12 @@ export const FREQUENCY_LABELS = {
   [Frequency.Weekly]: 'Weekly',
   [Frequency.Monthly]: 'Monthly',
 };
+
+// Target token enum (matches IOsiris.TargetToken)
+export enum TargetToken {
+  ETH = 0,
+  WREACT = 1,
+}
+
+// Base mainnet chain ID
+export const BASE_CHAIN_ID = 8453;
