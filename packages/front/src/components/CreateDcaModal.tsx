@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWallet } from '../providers/WalletProvider';
-import { Frequency, FREQUENCY_LABELS } from '../config/contracts';
+import { Frequency, FREQUENCY_LABELS, TargetToken, BASE_CHAIN_ID } from '../config/contracts';
 
 interface CreateDcaModalProps {
   isOpen: boolean;
@@ -8,16 +8,29 @@ interface CreateDcaModalProps {
 }
 
 const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
-  const { isConnected, setPlanWithBudget } = useWallet();
+  const { isConnected, setPlanWithBudget, chainId } = useWallet();
   const [amountPerBuy, setAmountPerBuy] = useState('50');
   const [frequency, setFrequency] = useState<Frequency>(Frequency.Weekly);
   const [maxBudgetPerExecution, setMaxBudgetPerExecution] = useState('0');
   const [enableVolatilityFilter, setEnableVolatilityFilter] = useState(false);
+  const [targetToken, setTargetToken] = useState<TargetToken>(TargetToken.ETH);
   const [isLoading, setIsLoading] = useState(false);
   const [transactionResult, setTransactionResult] = useState<{
     hash: string;
     status: string;
   } | null>(null);
+
+  const isBase = chainId === BASE_CHAIN_ID;
+  const tokenLabel = targetToken === TargetToken.WREACT ? 'wReact' : 'ETH';
+  const budgetLabel = targetToken === TargetToken.WREACT
+    ? 'Maximum REACT Price (USD)'
+    : 'Maximum ETH Price (USD)';
+  const budgetPlaceholder = targetToken === TargetToken.WREACT
+    ? '0.05 (leave 0 for no limit)'
+    : '3000 (leave 0 for no limit)';
+  const budgetDescription = targetToken === TargetToken.WREACT
+    ? "Maximum USD price per REACT you're willing to pay. Leave 0 for no limit."
+    : "Maximum USD price per ETH you're willing to pay. Leave 0 for no limit.";
 
   const handleCreateDcaPlan = async () => {
     if (!isConnected) return;
@@ -30,12 +43,12 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
         frequency,
         amountPerBuy,
         maxBudgetPerExecution,
-        enableVolatilityFilter
+        enableVolatilityFilter,
+        targetToken
       );
       setTransactionResult({ hash: result.hash, status: result.status });
 
       if (result.status === 'success') {
-        // Close modal after a short delay to show the transaction hash
         setTimeout(() => onClose(), 2000);
       }
     } catch (error) {
@@ -74,18 +87,49 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div className='space-y-6'>
-          {/* Token Selection - Fixed ETH */}
+          {/* Token Selection */}
           <div className='space-y-2'>
             <label className='text-gray-300 text-sm font-medium'>
               Token Buy
             </label>
-            <div className='flex items-center space-x-3 bg-gray-700 rounded-lg p-3'>
-              <div className='w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center'>
-                <span className='text-white text-sm font-bold'>Ξ</span>
+            {isBase ? (
+              <div className='grid grid-cols-2 gap-3'>
+                <button
+                  onClick={() => setTargetToken(TargetToken.ETH)}
+                  className={`flex items-center space-x-3 rounded-lg p-3 border transition-all duration-200 ${
+                    targetToken === TargetToken.ETH
+                      ? 'bg-gray-600 border-primary-500 ring-2 ring-primary-500/30'
+                      : 'bg-gray-700 border-gray-600 hover:border-gray-500'
+                  }`}
+                >
+                  <div className='w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center'>
+                    <span className='text-white text-sm font-bold'>{'Ξ'}</span>
+                  </div>
+                  <span className='text-white font-medium'>ETH</span>
+                </button>
+                <button
+                  onClick={() => setTargetToken(TargetToken.WREACT)}
+                  className={`flex items-center space-x-3 rounded-lg p-3 border transition-all duration-200 ${
+                    targetToken === TargetToken.WREACT
+                      ? 'bg-gray-600 border-primary-500 ring-2 ring-primary-500/30'
+                      : 'bg-gray-700 border-gray-600 hover:border-gray-500'
+                  }`}
+                >
+                  <div className='w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center'>
+                    <span className='text-white text-xs font-bold'>R</span>
+                  </div>
+                  <span className='text-white font-medium'>wReact</span>
+                </button>
               </div>
-              <span className='text-white font-medium'>ETH</span>
-              <span className='text-gray-400 text-sm ml-auto'>Fixed</span>
-            </div>
+            ) : (
+              <div className='flex items-center space-x-3 bg-gray-700 rounded-lg p-3'>
+                <div className='w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center'>
+                  <span className='text-white text-sm font-bold'>{'Ξ'}</span>
+                </div>
+                <span className='text-white font-medium'>ETH</span>
+                <span className='text-gray-400 text-sm ml-auto'>Fixed</span>
+              </div>
+            )}
           </div>
 
           {/* Amount per buy */}
@@ -140,7 +184,7 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
           {/* Budget Protection */}
           <div className='space-y-2'>
             <label className='text-gray-300 text-sm font-medium'>
-              Maximum ETH Price (USD)
+              {budgetLabel}
             </label>
             <div className='space-y-2'>
               <input
@@ -148,11 +192,10 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
                 value={maxBudgetPerExecution}
                 onChange={e => setMaxBudgetPerExecution(e.target.value)}
                 className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600 focus:border-primary-500 focus:outline-none'
-                placeholder='3000 (leave 0 for no limit)'
+                placeholder={budgetPlaceholder}
               />
               <p className='text-xs text-gray-400'>
-                Maximum USD price per ETH you're willing to pay. Leave 0 for no
-                limit.
+                {budgetDescription}
               </p>
             </div>
           </div>
@@ -195,7 +238,7 @@ const CreateDcaModal: React.FC<CreateDcaModalProps> = ({ isOpen, onClose }) => {
               disabled={!isConnected || isLoading}
               className='flex-1 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors'
             >
-              {isLoading ? 'Processing...' : 'Create Plan'}
+              {isLoading ? 'Processing...' : `Create ${tokenLabel} DCA`}
             </button>
           </div>
 

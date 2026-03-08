@@ -19,6 +19,9 @@ import {
   OSIRIS_ABI,
   USDC_ABI,
   Frequency,
+  TargetToken,
+  BASE_CHAIN_ID,
+  CHAIN,
 } from '../config/contracts';
 import { WalletContextType, DcaPlan, TransactionResult } from '../types';
 
@@ -48,8 +51,11 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     if (chainId === 42161) return CONTRACT_ADDRESSES.arbitrum;
     if (chainId === 11155111) return CONTRACT_ADDRESSES.sepolia;
     if (chainId === 84532) return CONTRACT_ADDRESSES['base-sepolia'];
+    if (chainId === BASE_CHAIN_ID) return CONTRACT_ADDRESSES.base;
     return CONTRACT_ADDRESSES.sepolia; // Default to Sepolia
   };
+
+  const isBaseChain = chainId === BASE_CHAIN_ID;
 
   const contractAddresses = getContractAddresses();
 
@@ -111,6 +117,15 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     watch: true,
   });
 
+  const { data: userWReactBalance } = useContractRead({
+    address: contractAddresses.osiris as `0x${string}`,
+    abi: OSIRIS_ABI,
+    functionName: 'getUserWReact',
+    args: address ? [address] : undefined,
+    enabled: isConnected && !!address && isBaseChain,
+    watch: true,
+  });
+
   const { data: userPlan } = useContractRead({
     address: contractAddresses.osiris as `0x${string}`,
     abi: OSIRIS_ABI,
@@ -139,6 +154,12 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     address: contractAddresses.osiris as `0x${string}`,
     abi: OSIRIS_ABI,
     functionName: 'claimNative',
+  });
+
+  const { writeAsync: claimTokenWrite } = useContractWrite({
+    address: contractAddresses.osiris as `0x${string}`,
+    abi: OSIRIS_ABI,
+    functionName: 'claimToken',
   });
 
   const { writeAsync: setPlanWithBudgetWrite } = useContractWrite({
@@ -274,15 +295,35 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
 
+  const claimToken = async (token: string, amount: string): Promise<TransactionResult> => {
+    const amountWei = parseEther(amount); // wReact is 18 decimals
+    try {
+      const result = await claimTokenWrite({
+        args: [token as `0x${string}`, amountWei],
+      });
+      return {
+        hash: result.hash,
+        status: 'success',
+      };
+    } catch (error) {
+      return {
+        hash: '',
+        status: 'error',
+        error,
+      };
+    }
+  };
+
   const setPlanWithBudget = async (
     frequency: Frequency,
     amountPerPeriod: string,
     maxBudgetPerExecution: string,
-    enableVolatilityFilter: boolean
+    enableVolatilityFilter: boolean,
+    targetToken: TargetToken = TargetToken.ETH
   ): Promise<TransactionResult> => {
     // Convert to USDC amount (6 decimals)
     const amountWei = parseUnits(amountPerPeriod, 6);
-    // Convert budget to wei (18 decimals for ETH price in USD)
+    // Convert budget to 8 decimals (oracle price scale)
     const budgetWei =
       maxBudgetPerExecution === '0'
         ? BigInt(0)
@@ -290,7 +331,7 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
     try {
       const result = await setPlanWithBudgetWrite({
-        args: [frequency, amountWei, budgetWei, enableVolatilityFilter],
+        args: [frequency, amountWei, budgetWei, enableVolatilityFilter, targetToken],
       });
       return {
         hash: result.hash,
@@ -378,6 +419,10 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       userNativeBalance && userNativeBalance !== undefined
         ? formatEther(BigInt(userNativeBalance.toString()))
         : '0',
+    userWReact:
+      userWReactBalance && userWReactBalance !== undefined
+        ? formatEther(BigInt(userWReactBalance.toString()))
+        : '0',
   };
 
   // Debug logging
@@ -393,10 +438,11 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           amountPerPeriod: formatUnits(userPlan.amountPerPeriod, 6), // USDC has 6 decimals
           nextExecutionTimestamp: Number(userPlan.nextExecutionTimestamp),
           maxBudgetPerExecution: userPlan.maxBudgetPerExecution
-            ? formatUnits(userPlan.maxBudgetPerExecution, 8) // ETH price in USD has 8 decimals
+            ? formatUnits(userPlan.maxBudgetPerExecution, 8) // price in USD has 8 decimals
             : '0',
           enableVolatilityFilter: userPlan.enableVolatilityFilter || false,
           isActive: Number(userPlan.nextExecutionTimestamp) > 0,
+          targetToken: userPlan.targetToken ?? TargetToken.ETH,
         }
       : null;
 
@@ -411,6 +457,7 @@ const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     depositUsdc,
     withdrawUsdc,
     claimNative,
+    claimToken,
     setPlanWithBudget,
     pausePlan,
     resumePlan,

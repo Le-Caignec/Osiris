@@ -6,7 +6,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { WagmiConfig, createConfig, configureChains } from 'wagmi';
-import { arbitrum, sepolia, baseSepolia } from 'wagmi/chains';
+import { arbitrum, sepolia, baseSepolia, base } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
 import {
@@ -24,9 +24,8 @@ import WalletProvider from './providers/WalletProvider';
 import { CHAIN } from './config/contracts';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [arbitrum, sepolia, baseSepolia],
+  [arbitrum, sepolia, baseSepolia, base],
   [
-    // Use custom RPC for Arbitrum, Sepolia, and Base Sepolia
     jsonRpcProvider({
       rpc: chain => {
         if (chain.id === arbitrum.id) {
@@ -37,6 +36,9 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
         }
         if (chain.id === baseSepolia.id) {
           return { http: CHAIN['base-sepolia'].rpc };
+        }
+        if (chain.id === base.id) {
+          return { http: CHAIN.base.rpc };
         }
         return null;
       },
