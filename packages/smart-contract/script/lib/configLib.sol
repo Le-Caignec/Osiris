@@ -29,6 +29,11 @@ library ConfigLib {
         address callbackContract;
         // Chainlink specific
         address chainlinkEthUsdFeed;
+        // wReact integration
+        // TODO: confirm wReact address on Sepolia, Base Sepolia, Arbitrum mainnet
+        // TODO: confirm diaOracle address on Ethereum mainnet, Sepolia, Base Sepolia, Arbitrum mainnet
+        address wReact;
+        address diaOracle;
     }
 
     function readDestinationNetworkConfig(string memory chain)
@@ -49,6 +54,8 @@ library ConfigLib {
         a.callbackProxyContract = json.readAddress(string.concat(prefix, ".callbackProxyContract"));
         a.callbackContract = json.readAddress(string.concat(prefix, ".callbackContract"));
         a.chainlinkEthUsdFeed = json.readAddress(string.concat(prefix, ".chainlinkEthUsdFeed"));
+        a.wReact = json.readAddress(string.concat(prefix, ".wReact"));
+        a.diaOracle = json.readAddress(string.concat(prefix, ".diaOracle"));
     }
 
     // Reads the reactive addresses for a given reactive network (e.g., "lasna" or "reactive")

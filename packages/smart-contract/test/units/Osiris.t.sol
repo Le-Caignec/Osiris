@@ -33,7 +33,7 @@ contract OsirisTest is Test {
         uint256 amountPerPeriod,
         uint256 nextExecutionTimestamp
     );
-    event CallbackProcessed(uint256 eligibleCount, uint256 totalUsdcIn, uint256 nativeOut);
+    event CallbackProcessed(uint256 eligibleCount, uint256 totalUsdcIn, uint256 nativeOut, uint256 wReactOut);
 
     function setUp() public {
         // Read from config.json like in UniV4Swap tests
@@ -55,7 +55,8 @@ contract OsirisTest is Test {
 
         usdc = IERC20(usdcAddress);
         address ethUsdFeed = cfg.chainlinkEthUsdFeed;
-        vault = new OsirisMock(universalRouter, permit2, usdcAddress, callbackSender, ethUsdFeed);
+        // address(0) for wReact and diaOracle: wReact DCA disabled in ETH-only tests
+        vault = new OsirisMock(universalRouter, permit2, usdcAddress, callbackSender, ethUsdFeed, address(0), address(0));
 
         // labels for nicer traces
         vm.label(address(vault), "Osiris");
@@ -128,18 +129,18 @@ contract OsirisTest is Test {
         vm.prank(alice);
         vm.expectEmit(true, false, false, false);
         emit PlanUpdated(alice, IOsiris.Frequency.Daily, 10e6, 0);
-        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 10e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 10e6, 0, false, IOsiris.TargetToken.ETH);
     }
 
     function test_setPlan_reverts_onZeroAmount() public {
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(IOsiris.AmountZero.selector));
-        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 0, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 0, 0, false, IOsiris.TargetToken.ETH);
     }
 
     function test_pause_and_resume_emitUpdates() public {
         vm.prank(alice);
-        vault.setPlanWithBudget(IOsiris.Frequency.Weekly, 5e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Weekly, 5e6, 0, false, IOsiris.TargetToken.ETH);
 
         vm.prank(alice);
         vm.expectEmit(true, false, false, false);
@@ -184,13 +185,13 @@ contract OsirisTest is Test {
         vm.startPrank(alice);
         IERC20(usdcAddress).approve(address(vault), type(uint256).max);
         vault.depositUsdc(20e6);
-        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 10e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 10e6, 0, false, IOsiris.TargetToken.ETH);
         vm.stopPrank();
 
         vm.startPrank(bob);
         IERC20(usdcAddress).approve(address(vault), type(uint256).max);
         vault.depositUsdc(60e6);
-        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 30e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 30e6, 0, false, IOsiris.TargetToken.ETH);
         vm.stopPrank();
 
         // Make both eligible
@@ -239,7 +240,7 @@ contract OsirisTest is Test {
         vm.startPrank(alice);
         IERC20(usdcAddress).approve(address(vault), type(uint256).max);
         vault.depositUsdc(10e6);
-        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 10e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 10e6, 0, false, IOsiris.TargetToken.ETH);
         vm.stopPrank();
 
         // Bob weekly plan (ineligible at +1 day)
@@ -247,7 +248,7 @@ contract OsirisTest is Test {
         vm.startPrank(bob);
         IERC20(usdcAddress).approve(address(vault), type(uint256).max);
         vault.depositUsdc(30e6);
-        vault.setPlanWithBudget(IOsiris.Frequency.Weekly, 30e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Weekly, 30e6, 0, false, IOsiris.TargetToken.ETH);
         vm.stopPrank();
 
         // Only Alice becomes eligible
@@ -323,13 +324,13 @@ contract OsirisTest is Test {
         vm.startPrank(alice);
         usdc.approve(address(vault), type(uint256).max);
         vault.depositUsdc(80e6);
-        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 40e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 40e6, 0, false, IOsiris.TargetToken.ETH);
         vm.stopPrank();
 
         vm.startPrank(bob);
         usdc.approve(address(vault), type(uint256).max);
         vault.depositUsdc(120e6);
-        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 60e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 60e6, 0, false, IOsiris.TargetToken.ETH);
         vm.stopPrank();
 
         vm.warp(block.timestamp + 2 days);
@@ -361,7 +362,7 @@ contract OsirisTest is Test {
 
         // Test after setting a plan
         vm.prank(alice);
-        vault.setPlanWithBudget(IOsiris.Frequency.Weekly, 25e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Weekly, 25e6, 0, false, IOsiris.TargetToken.ETH);
 
         IOsiris.DcaPlan memory activePlan = vault.getUserPlan(alice);
         assertEq(uint8(activePlan.freq), uint8(IOsiris.Frequency.Weekly), "frequency should be Weekly (1)");
@@ -394,7 +395,7 @@ contract OsirisTest is Test {
     function test_setPlan_frequencyChangeUpdatesTimestamp() public {
         // Set initial Daily plan
         vm.prank(alice);
-        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 50e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Daily, 50e6, 0, false, IOsiris.TargetToken.ETH);
 
         IOsiris.DcaPlan memory dailyPlan = vault.getUserPlan(alice);
         uint256 dailyTimestamp = dailyPlan.nextExecutionTimestamp;
@@ -406,7 +407,7 @@ contract OsirisTest is Test {
 
         // Change to Weekly frequency
         vm.prank(alice);
-        vault.setPlanWithBudget(IOsiris.Frequency.Weekly, 50e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Weekly, 50e6, 0, false, IOsiris.TargetToken.ETH);
 
         IOsiris.DcaPlan memory weeklyPlan = vault.getUserPlan(alice);
         uint256 weeklyTimestamp = weeklyPlan.nextExecutionTimestamp;
@@ -422,7 +423,7 @@ contract OsirisTest is Test {
         vm.warp(block.timestamp + 1 days);
 
         vm.prank(alice);
-        vault.setPlanWithBudget(IOsiris.Frequency.Monthly, 50e6, 0, false);
+        vault.setPlanWithBudget(IOsiris.Frequency.Monthly, 50e6, 0, false, IOsiris.TargetToken.ETH);
 
         IOsiris.DcaPlan memory monthlyPlan = vault.getUserPlan(alice);
         uint256 monthlyTimestamp = monthlyPlan.nextExecutionTimestamp;
