@@ -34,7 +34,9 @@ contract OsirisWReactTest is Test {
 
     // Events mirrored from IOsiris
     event ClaimedToken(address indexed user, address indexed token, uint256 amount);
-    event CallbackProcessed(uint256 usersProcessed, uint256 totalInUsdc, uint256 totalOutNative, uint256 totalOutWReact);
+    event CallbackProcessed(
+        uint256 usersProcessed, uint256 totalInUsdc, uint256 totalOutNative, uint256 totalOutWReact
+    );
     event DcaExecutionSkipped(address indexed user, string reason, uint256 timestamp);
 
     function setUp() public {
@@ -65,7 +67,13 @@ contract OsirisWReactTest is Test {
 
         // Deploy vault with wReact and diaOracle configured
         vault = new OsirisMock(
-            address(routerMock), permit2, usdcAddress, callbackSender, cfg.chainlinkEthUsdFeed, address(wReact), address(diaOracle)
+            address(routerMock),
+            permit2,
+            usdcAddress,
+            callbackSender,
+            cfg.chainlinkEthUsdFeed,
+            address(wReact),
+            address(diaOracle)
         );
 
         // Labels for nicer traces

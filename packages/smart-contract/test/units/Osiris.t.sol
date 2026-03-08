@@ -56,7 +56,8 @@ contract OsirisTest is Test {
         usdc = IERC20(usdcAddress);
         address ethUsdFeed = cfg.chainlinkEthUsdFeed;
         // address(0) for wReact and diaOracle: wReact DCA disabled in ETH-only tests
-        vault = new OsirisMock(universalRouter, permit2, usdcAddress, callbackSender, ethUsdFeed, address(0), address(0));
+        vault =
+            new OsirisMock(universalRouter, permit2, usdcAddress, callbackSender, ethUsdFeed, address(0), address(0));
 
         // labels for nicer traces
         vm.label(address(vault), "Osiris");
