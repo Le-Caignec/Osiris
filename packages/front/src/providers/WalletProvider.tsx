@@ -21,7 +21,6 @@ import {
   Frequency,
   TargetToken,
   BASE_CHAIN_ID,
-  CHAIN,
 } from '../config/contracts';
 import { WalletContextType, DcaPlan, TransactionResult } from '../types';
 

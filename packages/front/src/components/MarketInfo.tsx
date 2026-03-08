@@ -123,7 +123,7 @@ const MarketInfo: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [lastFetch, CACHE_KEY_PRICE, CACHE_KEY_VOLATILITY, CACHE_KEY_TIMESTAMP, CACHE_DURATION]);
+  }, [lastFetch, CACHE_KEY_PRICE, CACHE_KEY_VOLATILITY, CACHE_KEY_TIMESTAMP]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchMarketData();
