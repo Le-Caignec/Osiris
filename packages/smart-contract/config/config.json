@@ -64,8 +64,8 @@
             "uniswapPermit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
             "weth": "0x4200000000000000000000000000000000000006",
             "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-            "callbackProxyContract": "0xa6eA49Ed671B8a4dfCDd34E36b7a75Ac79B8A5a6",
-            "callbackContract": "0x0000000000000000000000000000000000000000",
+            "callbackProxyContract": "0x0D3E76De6bC44309083cAAFdB49A088B8a250947",
+            "callbackContract": "0x43b13636B59f9Dc05687Ac0CcDe2761707d3cD1d",
             "chainlinkEthUsdFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
             "wReact": "0xedacc73ae9f73235934f72a43388404e4a2c4a24",
             "diaOracle": "0x5612599CF48032d7428399d5Fcb99eDcc75c06A7"

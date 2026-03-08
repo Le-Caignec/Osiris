@@ -27,7 +27,7 @@ export const CHAIN = {
   // Base Mainnet
   base: {
     contracts: {
-      osiris: '0x0000000000000000000000000000000000000000', // TODO: deploy and update
+      osiris: '0x43b13636B59f9Dc05687Ac0CcDe2761707d3cD1d',
       usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
       wReact: '0xedacc73ae9f73235934f72a43388404e4a2c4a24',
     },

@@ -102,7 +102,7 @@ The faucet provides 10 USDC per hour per address per hours
   - Osiris Contract: [`0xCab6642443a6efeAEe635C0A2dFEC6018b4Cd6a1`](https://arbiscan.io/address/0xCab6642443a6efeAEe635C0A2dFEC6018b4Cd6a1)
 
 - **Base Mainnet**:
-  - Osiris Contract: [`XXXX`](https://basescan.org/address/XXX)
+  - Osiris Contract: [`0x43b13636B59f9Dc05687Ac0CcDe2761707d3cD1d`](https://basescan.org/address/0x43b13636B59f9Dc05687Ac0CcDe2761707d3cD1d)
 
 ### Getting Started on Mainnet
 
