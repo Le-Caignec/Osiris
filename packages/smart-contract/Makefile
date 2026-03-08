@@ -60,13 +60,12 @@ deploy-reactive:
 	fi; \
 	echo "Deploying with $$VALUE REACT..."; \
 	if [ "$$IS_MAINNET" = "true" ]; then \
-		LEDGER_IDX=$${LEDGER_INDEX:-0}; \
-		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)"; \
+		echo "Using Ledger account index: $(LEDGER_INDEX)"; \
 		forge create --broadcast \
 			--rpc-url $$REACTIVE_RPC_URL \
 			--chain-id $$REACTIVE_CHAIN_ID \
 			--ledger \
-			--mnemonic-index $$LEDGER_IDX \
+			--mnemonic-index $(LEDGER_INDEX) \
 			--value $${VALUE}ether \
 			src/CronReactive.sol:CronReactive \
 			--constructor-args $$REACTIVE_SYSTEM $$CRON_TOPIC $$CHAIN_IDS_ARRAY $$CALLBACKS_ARRAY; \
@@ -104,14 +103,13 @@ deploy-osiris:
 	else \
 		echo "Please connect your Ledger and unlock it..." && \
 		echo "Make sure the Ethereum app is open on your Ledger" && \
-		LEDGER_IDX=$${LEDGER_INDEX:-0} && \
-		echo "Using Ledger account index: $$LEDGER_IDX (set LEDGER_INDEX in .env to change)" && \
-		SENDER_ADDR=$$(cast wallet address --ledger --mnemonic-index $$LEDGER_IDX) && \
+		echo "Using Ledger account index: $(LEDGER_INDEX)" && \
+		SENDER_ADDR=$$(cast wallet address --ledger --mnemonic-index $(LEDGER_INDEX)) && \
 		echo "Ledger address: $$SENDER_ADDR" && \
 		FUND_AMOUNT=$$FUND_WEI forge script script/Deploy.s.sol:DeployOsiris \
 			--rpc-url $$RPC_URL \
 			--ledger \
-			--mnemonic-indexes $$LEDGER_IDX \
+			--mnemonic-indexes $(LEDGER_INDEX) \
 			--sender $$SENDER_ADDR \
 			--broadcast \
 			--verify \
@@ -126,22 +124,49 @@ pause-cron-reactive:
 	@REACTIVE_NETWORK=$${REACTIVE_NETWORK:-lasna}; \
 	REACTIVE_RPC_URL=$$(jq -r ".chains.$$REACTIVE_NETWORK.rpcUrl" config/config.json); \
 	echo "Pausing CronReactive on $$REACTIVE_NETWORK network (will pause all destination chains)"; \
-	REACTIVE_NETWORK=$$REACTIVE_NETWORK forge script script/CronAction.s.sol:CronActionPause \
-		--rpc-url $$REACTIVE_RPC_URL \
-		--account $(ACCOUNT) \
-		--broadcast \
-		-vvv
+	if [ "$$REACTIVE_NETWORK" = "reactive" ]; then \
+		echo "Using Ledger account index: $(LEDGER_INDEX)"; \
+		SENDER_ADDR=$$(cast wallet address --ledger --mnemonic-index $(LEDGER_INDEX)); \
+		REACTIVE_NETWORK=$$REACTIVE_NETWORK forge script script/CronAction.s.sol:CronActionPause \
+			--rpc-url $$REACTIVE_RPC_URL \
+			--ledger \
+			--mnemonic-indexes $(LEDGER_INDEX) \
+			--sender $$SENDER_ADDR \
+			--broadcast \
+			-vvv; \
+	else \
+		echo "Using local keystore account: $(ACCOUNT)"; \
+		REACTIVE_NETWORK=$$REACTIVE_NETWORK forge script script/CronAction.s.sol:CronActionPause \
+			--rpc-url $$REACTIVE_RPC_URL \
+			--account $(ACCOUNT) \
+			--broadcast \
+			-vvv; \
+	fi
 
 unpause-cron-reactive:
 	# Unpause the CronReactive contract on reactive network (unpauses all destination chains)
 	@REACTIVE_NETWORK=$${REACTIVE_NETWORK:-lasna}; \
 	REACTIVE_RPC_URL=$$(jq -r ".chains.$$REACTIVE_NETWORK.rpcUrl" config/config.json); \
 	echo "Unpausing CronReactive on $$REACTIVE_NETWORK network (will unpause all destination chains)"; \
-	REACTIVE_NETWORK=$$REACTIVE_NETWORK forge script script/CronAction.s.sol:CronActionUnpause \
-		--rpc-url $$REACTIVE_RPC_URL \
-		--account $(ACCOUNT) \
-		--broadcast \
-		-vvv
+	if [ "$$REACTIVE_NETWORK" = "reactive" ]; then \
+		LEDGER_IDX=$${LEDGER_INDEX:-0}; \
+		echo "Using Ledger account index: $$LEDGER_IDX"; \
+		SENDER_ADDR=$$(cast wallet address --ledger --mnemonic-index $$LEDGER_IDX); \
+		REACTIVE_NETWORK=$$REACTIVE_NETWORK forge script script/CronAction.s.sol:CronActionUnpause \
+			--rpc-url $$REACTIVE_RPC_URL \
+			--ledger \
+			--mnemonic-indexes $$LEDGER_IDX \
+			--sender $$SENDER_ADDR \
+			--broadcast \
+			-vvv; \
+	else \
+		echo "Using local keystore account: $(ACCOUNT)"; \
+		REACTIVE_NETWORK=$$REACTIVE_NETWORK forge script script/CronAction.s.sol:CronActionUnpause \
+			--rpc-url $$REACTIVE_RPC_URL \
+			--account $(ACCOUNT) \
+			--broadcast \
+			-vvv; \
+	fi
 
 fund-callback-proxy:
 	# Send funds to the callback proxy contract
@@ -172,13 +197,12 @@ fund-callback-proxy:
 			--account $(ACCOUNT) \
 			--value $${AMOUNT}ether; \
 	else \
-		LEDGER_IDX=$${LEDGER_INDEX:-0}; \
-		echo "Using Ledger account index: $$LEDGER_IDX"; \
+		echo "Using Ledger account index: $(LEDGER_INDEX)"; \
 		cast send $$CALLBACK_PROXY \
 			"depositTo(address)" $$CALLBACK_CONTRACT \
 			--rpc-url $$RPC_URL \
 			--ledger \
-			--mnemonic-index $$LEDGER_IDX \
+			--mnemonic-index $(LEDGER_INDEX) \
 			--value $${AMOUNT}ether; \
 	fi; \
 	echo "✅ Funds sent successfully!"
