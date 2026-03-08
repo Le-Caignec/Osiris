@@ -22,14 +22,23 @@ contract UniV4SwapTest is Test {
     IERC20 private usdc;
 
     UniV4Swap private uni;
-    address private user = makeAddr("user");
+    // Use a fresh address that won't have code deployed on fork networks
+    address private user;
 
     uint24 constant FEE = 3000; // 0.3%
     int24 constant TICK_SPACING = 60;
 
     function setUp() public {
-        string memory chain = vm.envOr("CHAIN", string("ethereum"));
+        string memory chain;
+        try vm.envString("CHAIN") returns (string memory envChain) {
+            chain = bytes(envChain).length > 0 ? envChain : "sepolia";
+        } catch {
+            chain = "sepolia";
+        }
         ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
+
+        // Create a fresh user address after fork to avoid collisions with deployed contracts
+        user = makeAddr(string.concat("univ4swap_test_user_", chain));
         vm.createSelectFork(config.rpcUrl);
 
         wethAddress = config.weth;
@@ -92,7 +101,8 @@ contract UniV4SwapTest is Test {
     // Swap WETH -> USDC
     function testSwapWETHForUSDC() public {
         vm.skip(
-            block.chainid == 11155111 || block.chainid == 42161, "Skip on Sepolia/Arbitrum fork due to low liquidity"
+            block.chainid == 11155111 || block.chainid == 42161 || block.chainid == 8453,
+            "Skip on Sepolia/Arbitrum/Base fork due to low liquidity"
         );
         vm.startPrank(user);
 
@@ -132,7 +142,8 @@ contract UniV4SwapTest is Test {
     // Swap USDC -> WETH
     function testSwapUSDCForWETH() public {
         vm.skip(
-            block.chainid == 11155111 || block.chainid == 42161, "Skip on Sepolia/Arbitrum fork due to low liquidity"
+            block.chainid == 11155111 || block.chainid == 42161 || block.chainid == 8453,
+            "Skip on Sepolia/Arbitrum/Base fork due to low liquidity"
         );
 
         deal(usdcAddress, user, 5_000 * 1e6);

@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import { useWallet } from '../providers/WalletProvider';
+import { BASE_CHAIN_ID, CHAIN } from '../config/contracts';
 
 const FundsCard: React.FC = () => {
-  const { isConnected, balances, withdrawUsdc, claimNative, depositUsdc } =
+  const { isConnected, balances, withdrawUsdc, claimNative, claimToken, depositUsdc, chainId } =
     useWallet();
   const [usdcWithdrawAmount, setUsdcWithdrawAmount] = useState('');
   const [usdcDepositAmount, setUsdcDepositAmount] = useState('');
   const [ethWithdrawAmount, setEthWithdrawAmount] = useState('');
+  const [wReactClaimAmount, setWReactClaimAmount] = useState('');
   const [isDepositLoading, setIsDepositLoading] = useState(false);
   const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
   const [isClaimLoading, setIsClaimLoading] = useState(false);
+  const [isWReactClaimLoading, setIsWReactClaimLoading] = useState(false);
+
+  const isBase = chainId === BASE_CHAIN_ID;
+  const hasWReact = isBase && parseFloat(balances.userWReact) > 0;
 
   const handleWithdrawUsdc = async () => {
     if (!isConnected || !usdcWithdrawAmount) return;
@@ -56,6 +62,22 @@ const FundsCard: React.FC = () => {
       console.error('Error claiming ETH:', error);
     } finally {
       setIsClaimLoading(false);
+    }
+  };
+
+  const handleClaimWReact = async () => {
+    if (!isConnected || !wReactClaimAmount) return;
+
+    setIsWReactClaimLoading(true);
+    try {
+      const result = await claimToken(CHAIN.base.contracts.wReact, wReactClaimAmount);
+      if (result.status === 'success') {
+        setWReactClaimAmount('');
+      }
+    } catch (error) {
+      console.error('Error claiming wReact:', error);
+    } finally {
+      setIsWReactClaimLoading(false);
     }
   };
 
@@ -108,7 +130,7 @@ const FundsCard: React.FC = () => {
         </h3>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6'>
+      <div className={`grid grid-cols-1 ${hasWReact ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
         {/* USDC Deposit */}
         <div className='bg-gray-700/50 rounded-xl p-4 sm:p-5 hover:bg-gray-700/70 transition-colors duration-200 min-h-[200px] flex flex-col'>
           <div className='flex items-center space-x-3 mb-4'>
@@ -253,6 +275,48 @@ const FundsCard: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* wReact Claim (Base only) */}
+        {hasWReact && (
+          <div className='bg-gray-700/50 rounded-xl p-4 sm:p-5 hover:bg-gray-700/70 transition-colors duration-200 min-h-[200px] flex flex-col'>
+            <div className='flex items-center space-x-3 mb-4'>
+              <div className='w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0'>
+                <span className='text-white text-sm font-bold'>R</span>
+              </div>
+              <span className='text-gray-300 font-medium text-base'>
+                wReact Claim
+              </span>
+            </div>
+
+            <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-1'>
+              <span className='text-gray-400 text-sm'>Available wReact</span>
+              <span className='text-purple-400 font-bold text-base'>
+                {parseFloat(balances.userWReact).toFixed(2)} wReact
+              </span>
+            </div>
+
+            <div className='flex flex-col gap-3 flex-grow'>
+              <input
+                type='number'
+                value={wReactClaimAmount}
+                onChange={e => setWReactClaimAmount(e.target.value)}
+                className='w-full bg-gray-600 text-white rounded-xl p-3 border border-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-200 text-base'
+                placeholder='Amount to claim'
+              />
+              <button
+                onClick={handleClaimWReact}
+                disabled={
+                  !wReactClaimAmount ||
+                  isWReactClaimLoading ||
+                  parseFloat(wReactClaimAmount) > parseFloat(balances.userWReact)
+                }
+                className='bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 w-full text-base mt-auto'
+              >
+                {isWReactClaimLoading ? 'Processing...' : 'Claim'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

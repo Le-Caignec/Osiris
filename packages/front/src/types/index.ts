@@ -5,6 +5,7 @@ export interface DcaPlanResponse {
   nextExecutionTimestamp: bigint;
   maxBudgetPerExecution: bigint;
   enableVolatilityFilter: boolean;
+  targetToken: number;
 }
 
 // Types pour les balances
@@ -14,6 +15,7 @@ export interface Balances {
   vaultUsdc: string;
   userUsdc: string;
   userNative: string;
+  userWReact: string;
 }
 
 // Types pour le plan DCA
@@ -24,6 +26,7 @@ export interface DcaPlan {
   maxBudgetPerExecution: string;
   enableVolatilityFilter: boolean;
   isActive: boolean;
+  targetToken: number;
 }
 
 // Types pour les résultats de transaction
@@ -43,11 +46,13 @@ export interface WalletContextType {
   depositUsdc: (amount: string) => Promise<TransactionResult>;
   withdrawUsdc: (amount: string) => Promise<TransactionResult>;
   claimNative: (amount: string) => Promise<TransactionResult>;
+  claimToken: (token: string, amount: string) => Promise<TransactionResult>;
   setPlanWithBudget: (
     frequency: number,
     amountPerPeriod: string,
     maxBudgetPerExecution: string,
-    enableVolatilityFilter: boolean
+    enableVolatilityFilter: boolean,
+    targetToken: number
   ) => Promise<TransactionResult>;
   pausePlan: () => Promise<TransactionResult>;
   resumePlan: () => Promise<TransactionResult>;

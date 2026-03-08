@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        network: [sepolia, ethereum, arbitrum]
+        network: [sepolia, arbitrum, base]
     defaults:
       run:
         working-directory: packages/smart-contract

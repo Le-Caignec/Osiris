@@ -1,5 +1,6 @@
 import React from 'react';
 import { useWallet } from '../providers/WalletProvider';
+import { BASE_CHAIN_ID } from '../config/contracts';
 
 const BalanceCard: React.FC = () => {
   const { isConnected, balances, chainId } = useWallet();
@@ -35,15 +36,21 @@ const BalanceCard: React.FC = () => {
     return num.toFixed(decimals);
   };
 
+  const isBase = chainId === BASE_CHAIN_ID;
+
   const getNetworkName = () => {
     if (chainId === 42161) return 'Arbitrum';
     if (chainId === 11155111) return 'Sepolia';
+    if (chainId === 84532) return 'Base Sepolia';
+    if (chainId === BASE_CHAIN_ID) return 'Base';
     return 'Unknown';
   };
 
   const getNetworkColor = () => {
     if (chainId === 42161) return 'from-blue-500 to-blue-600';
     if (chainId === 11155111) return 'from-purple-500 to-purple-600';
+    if (chainId === 84532) return 'from-blue-400 to-blue-500';
+    if (chainId === BASE_CHAIN_ID) return 'from-blue-600 to-blue-700';
     return 'from-gray-500 to-gray-600';
   };
 
@@ -88,6 +95,20 @@ const BalanceCard: React.FC = () => {
       value: `${formatBalance(balances.userNative, 4)} ETH`,
       color: 'text-yellow-400',
     },
+    ...(isBase
+      ? [
+          {
+            icon: (
+              <span className='w-6 h-6 flex items-center justify-center text-purple-400 font-bold text-sm'>
+                R
+              </span>
+            ),
+            label: 'Available wReact to Claim',
+            value: `${formatBalance(balances.userWReact, 2)} wReact`,
+            color: 'text-purple-400',
+          },
+        ]
+      : []),
   ];
 
   return (

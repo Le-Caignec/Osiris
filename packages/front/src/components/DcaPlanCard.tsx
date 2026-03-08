@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useWallet } from '../providers/WalletProvider';
 import { format } from 'date-fns';
+import { TargetToken, BASE_CHAIN_ID } from '../config/contracts';
 
 const DcaPlanCard: React.FC = () => {
-  const { isConnected, dcaPlan, setPlanWithBudget, pausePlan, resumePlan } =
+  const { isConnected, dcaPlan, setPlanWithBudget, pausePlan, resumePlan, chainId } =
     useWallet();
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -18,6 +19,11 @@ const DcaPlanCard: React.FC = () => {
   const [editVolatilityFilter, setEditVolatilityFilter] = useState(
     dcaPlan?.enableVolatilityFilter || false
   );
+  const [editTargetToken, setEditTargetToken] = useState<TargetToken>(
+    dcaPlan?.targetToken ?? TargetToken.ETH
+  );
+
+  const isBase = chainId === BASE_CHAIN_ID;
 
   const handleCreatePlan = async () => {
     if (!isConnected) return;
@@ -28,7 +34,8 @@ const DcaPlanCard: React.FC = () => {
         editFrequency,
         editAmount,
         editMaxBudget,
-        editVolatilityFilter
+        editVolatilityFilter,
+        editTargetToken
       );
       if (result.status === 'success') {
         setIsCreating(false);
@@ -49,7 +56,8 @@ const DcaPlanCard: React.FC = () => {
         editFrequency,
         editAmount,
         editMaxBudget,
-        editVolatilityFilter
+        editVolatilityFilter,
+        editTargetToken
       );
       if (result.status === 'success') {
         setIsEditing(false);
@@ -154,6 +162,39 @@ const DcaPlanCard: React.FC = () => {
               </p>
             </div>
 
+            {/* Target Token (Base only) */}
+            {isBase && (
+              <div>
+                <label className='block text-sm font-medium text-gray-300 mb-2'>
+                  Target Token
+                </label>
+                <div className='grid grid-cols-2 gap-2'>
+                  <button
+                    onClick={() => setEditTargetToken(TargetToken.ETH)}
+                    className={`flex items-center justify-center space-x-2 rounded-lg p-2.5 border text-sm transition-all ${
+                      editTargetToken === TargetToken.ETH
+                        ? 'bg-gray-600 border-primary-500 ring-2 ring-primary-500/30 text-white'
+                        : 'bg-gray-700 border-gray-600 hover:border-gray-500 text-gray-300'
+                    }`}
+                  >
+                    <span className='font-bold'>{'Ξ'}</span>
+                    <span>ETH</span>
+                  </button>
+                  <button
+                    onClick={() => setEditTargetToken(TargetToken.WREACT)}
+                    className={`flex items-center justify-center space-x-2 rounded-lg p-2.5 border text-sm transition-all ${
+                      editTargetToken === TargetToken.WREACT
+                        ? 'bg-gray-600 border-purple-500 ring-2 ring-purple-500/30 text-white'
+                        : 'bg-gray-700 border-gray-600 hover:border-gray-500 text-gray-300'
+                    }`}
+                  >
+                    <span className='font-bold text-purple-400'>R</span>
+                    <span>wReact</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className='grid grid-cols-2 gap-3'>
               <div>
                 <label className='block text-sm font-medium text-gray-300 mb-2'>
@@ -187,17 +228,17 @@ const DcaPlanCard: React.FC = () => {
             {/* Budget Protection */}
             <div>
               <label className='block text-sm font-medium text-gray-300 mb-2'>
-                Max ETH Price (USD)
+                {editTargetToken === TargetToken.WREACT ? 'Max REACT Price (USD)' : 'Max ETH Price (USD)'}
               </label>
               <input
                 type='number'
                 value={editMaxBudget}
                 onChange={e => setEditMaxBudget(e.target.value)}
                 className='w-full bg-gray-700 text-white rounded-lg p-3 border border-gray-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 text-sm'
-                placeholder='3000 (0 = no limit)'
+                placeholder={editTargetToken === TargetToken.WREACT ? '0.05 (0 = no limit)' : '3000 (0 = no limit)'}
               />
               <p className='text-xs text-gray-400 mt-1'>
-                Maximum USD price per ETH. Leave 0 for no limit.
+                Maximum USD price per {editTargetToken === TargetToken.WREACT ? 'REACT' : 'ETH'}. Leave 0 for no limit.
               </p>
             </div>
 
@@ -292,6 +333,10 @@ const DcaPlanCard: React.FC = () => {
     }
   };
 
+  const getTargetTokenLabel = (token: number) => {
+    return token === TargetToken.WREACT ? 'wReact' : 'ETH';
+  };
+
   return (
     <div className='bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col h-full min-h-[600px]'>
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 sm:gap-0'>
@@ -339,6 +384,39 @@ const DcaPlanCard: React.FC = () => {
 
       {isEditing ? (
         <div className='space-y-4 sm:space-y-6'>
+          {/* Target Token (Base only) */}
+          {isBase && (
+            <div>
+              <label className='block text-xs sm:text-sm font-medium text-gray-300 mb-2 sm:mb-3'>
+                Target Token
+              </label>
+              <div className='grid grid-cols-2 gap-3'>
+                <button
+                  onClick={() => setEditTargetToken(TargetToken.ETH)}
+                  className={`flex items-center justify-center space-x-2 rounded-xl p-3 border text-sm transition-all ${
+                    editTargetToken === TargetToken.ETH
+                      ? 'bg-gray-600 border-primary-500 ring-2 ring-primary-500/30 text-white'
+                      : 'bg-gray-700 border-gray-600 hover:border-gray-500 text-gray-300'
+                  }`}
+                >
+                  <span className='font-bold'>{'Ξ'}</span>
+                  <span>ETH</span>
+                </button>
+                <button
+                  onClick={() => setEditTargetToken(TargetToken.WREACT)}
+                  className={`flex items-center justify-center space-x-2 rounded-xl p-3 border text-sm transition-all ${
+                    editTargetToken === TargetToken.WREACT
+                      ? 'bg-gray-600 border-purple-500 ring-2 ring-purple-500/30 text-white'
+                      : 'bg-gray-700 border-gray-600 hover:border-gray-500 text-gray-300'
+                  }`}
+                >
+                  <span className='font-bold text-purple-400'>R</span>
+                  <span>wReact</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6'>
             <div>
               <label className='block text-xs sm:text-sm font-medium text-gray-300 mb-2 sm:mb-3'>
@@ -372,18 +450,17 @@ const DcaPlanCard: React.FC = () => {
           {/* Budget Protection */}
           <div className='space-y-2'>
             <label className='block text-xs sm:text-sm font-medium text-gray-300 mb-2 sm:mb-3'>
-              Maximum ETH Price (USD)
+              {editTargetToken === TargetToken.WREACT ? 'Maximum REACT Price (USD)' : 'Maximum ETH Price (USD)'}
             </label>
             <input
               type='number'
               value={editMaxBudget}
               onChange={e => setEditMaxBudget(e.target.value)}
               className='w-full bg-gray-700 text-white rounded-xl p-3 sm:p-4 border border-gray-600 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 text-sm sm:text-base'
-              placeholder='3000 (leave 0 for no limit)'
+              placeholder={editTargetToken === TargetToken.WREACT ? '0.05 (leave 0 for no limit)' : '3000 (leave 0 for no limit)'}
             />
             <p className='text-xs text-gray-400'>
-              Maximum USD price per ETH you're willing to pay. Leave 0 for no
-              limit.
+              Maximum USD price per {editTargetToken === TargetToken.WREACT ? 'REACT' : 'ETH'} you're willing to pay. Leave 0 for no limit.
             </p>
           </div>
 
@@ -496,13 +573,31 @@ const DcaPlanCard: React.FC = () => {
                   </svg>
                 </div>
                 <span className='text-gray-300 font-medium text-sm sm:text-base'>
-                  Max ETH Price
+                  Max {getTargetTokenLabel(dcaPlan.targetToken)} Price
                 </span>
               </div>
               <span className='text-white font-bold text-base sm:text-lg'>
                 {parseFloat(dcaPlan.maxBudgetPerExecution) === 0
                   ? 'No Limit'
-                  : `$${parseFloat(dcaPlan.maxBudgetPerExecution).toFixed(0)}`}
+                  : dcaPlan.targetToken === TargetToken.WREACT
+                    ? `$${parseFloat(dcaPlan.maxBudgetPerExecution).toFixed(4)}`
+                    : `$${parseFloat(dcaPlan.maxBudgetPerExecution).toFixed(0)}`}
+              </span>
+            </div>
+
+            <div className='bg-gray-700/50 rounded-xl p-3 sm:p-4 hover:bg-gray-700/70 transition-colors duration-200'>
+              <div className='flex items-center space-x-2 sm:space-x-3 mb-2'>
+                <div className={`w-6 h-6 sm:w-8 sm:h-8 ${dcaPlan.targetToken === TargetToken.WREACT ? 'bg-purple-600' : 'bg-cyan-600'} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                  <span className='text-white text-xs sm:text-sm font-bold'>
+                    {dcaPlan.targetToken === TargetToken.WREACT ? 'R' : 'Ξ'}
+                  </span>
+                </div>
+                <span className='text-gray-300 font-medium text-sm sm:text-base'>
+                  Target Token
+                </span>
+              </div>
+              <span className='text-white font-bold text-base sm:text-lg'>
+                {getTargetTokenLabel(dcaPlan.targetToken)}
               </span>
             </div>
 

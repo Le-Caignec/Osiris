@@ -20,12 +20,17 @@ contract DeployOsiris is Script {
         address usdc = config.usdc;
         address callbackSender = config.callbackProxyContract;
         address ethUsdFeed = config.chainlinkEthUsdFeed;
+        // address(0) = wReact DCA disabled on networks without confirmed addresses
+        address wReact = config.wReact;
+        address diaOracle = config.diaOracle;
 
         vm.startBroadcast();
 
-        // Deploy the Osiris contract with Chainlink integration
-        Osiris osirisContract = new Osiris(universalRouter, permit2, usdc, callbackSender, ethUsdFeed);
+        Osiris osirisContract =
+            new Osiris(universalRouter, permit2, usdc, callbackSender, ethUsdFeed, wReact, diaOracle);
         console.log("Osiris Contract Address:", address(osirisContract));
+        console.log("wReact configured:", wReact != address(0));
+        console.log("DIA Oracle configured:", diaOracle != address(0));
 
         // Fund the callback proxy if FUND_AMOUNT is set
         uint256 fundAmount = vm.envOr("FUND_AMOUNT", uint256(0));

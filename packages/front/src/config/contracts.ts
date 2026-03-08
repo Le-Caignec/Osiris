@@ -3,7 +3,7 @@ export const CHAIN = {
   // Arbitrum Mainnet
   arbitrum: {
     contracts: {
-      osiris: '0x5060963F11B2c4d95bB5e0bFcf52e76b1fb2aD56',
+      osiris: '0xCab6642443a6efeAEe635C0A2dFEC6018b4Cd6a1',
       usdc: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     },
     rpc: 'https://arb1.arbitrum.io/rpc',
@@ -16,12 +16,31 @@ export const CHAIN = {
     },
     rpc: 'https://gateway.tenderly.co/public/sepolia',
   },
+  // Base Sepolia Testnet
+  'base-sepolia': {
+    contracts: {
+      osiris: '0x45b2cd08b08db052da24d93affb6a8ae786623b4',
+      usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+    },
+    rpc: 'https://base-sepolia-rpc.publicnode.com',
+  },
+  // Base Mainnet
+  base: {
+    contracts: {
+      osiris: '0x43b13636B59f9Dc05687Ac0CcDe2761707d3cD1d',
+      usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      wReact: '0xedacc73ae9f73235934f72a43388404e4a2c4a24',
+    },
+    rpc: 'https://mainnet.base.org',
+  },
 };
 
 // Legacy exports for backward compatibility
 export const CONTRACT_ADDRESSES = {
   arbitrum: CHAIN.arbitrum.contracts,
   sepolia: CHAIN.sepolia.contracts,
+  'base-sepolia': CHAIN['base-sepolia'].contracts,
+  base: CHAIN.base.contracts,
 };
 
 // Contract ABI - Osiris contract interface
@@ -95,6 +114,17 @@ export const OSIRIS_ABI = [
       { name: 'usersProcessed', type: 'uint256', indexed: false },
       { name: 'totalInUsdc', type: 'uint256', indexed: false },
       { name: 'totalOutNative', type: 'uint256', indexed: false },
+      { name: 'totalOutWReact', type: 'uint256', indexed: false },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'ClaimedToken',
+    inputs: [
+      { name: 'user', type: 'address', indexed: true },
+      { name: 'token', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
     ],
     anonymous: false,
   },
@@ -103,6 +133,11 @@ export const OSIRIS_ABI = [
   {
     type: 'error',
     name: 'AmountZero',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'WReactNotConfigured',
     inputs: [],
   },
   {
@@ -153,6 +188,16 @@ export const OSIRIS_ABI = [
     outputs: [],
     stateMutability: 'nonpayable',
   },
+  {
+    type: 'function',
+    name: 'claimToken',
+    inputs: [
+      { name: 'token', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
 
   // Plan management
   {
@@ -163,6 +208,7 @@ export const OSIRIS_ABI = [
       { name: 'amountPerPeriod', type: 'uint256' },
       { name: 'maxBudgetPerExecution', type: 'uint256' },
       { name: 'enableVolatilityFilter', type: 'bool' },
+      { name: 'targetToken', type: 'uint8' },
     ],
     outputs: [],
     stateMutability: 'nonpayable',
@@ -215,6 +261,13 @@ export const OSIRIS_ABI = [
   },
   {
     type: 'function',
+    name: 'getUserWReact',
+    inputs: [{ name: 'user', type: 'address' }],
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'getUserPlan',
     inputs: [{ name: 'user', type: 'address' }],
     outputs: [
@@ -227,6 +280,7 @@ export const OSIRIS_ABI = [
           { name: 'nextExecutionTimestamp', type: 'uint256' },
           { name: 'maxBudgetPerExecution', type: 'uint256' },
           { name: 'enableVolatilityFilter', type: 'bool' },
+          { name: 'targetToken', type: 'uint8' },
         ],
       },
     ],
@@ -341,3 +395,12 @@ export const FREQUENCY_LABELS = {
   [Frequency.Weekly]: 'Weekly',
   [Frequency.Monthly]: 'Monthly',
 };
+
+// Target token enum (matches IOsiris.TargetToken)
+export enum TargetToken {
+  ETH = 0,
+  WREACT = 1,
+}
+
+// Base mainnet chain ID
+export const BASE_CHAIN_ID = 8453;

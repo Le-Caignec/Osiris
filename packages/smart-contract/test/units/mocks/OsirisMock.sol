@@ -4,12 +4,17 @@ pragma solidity ^0.8.23;
 import {Osiris} from "../../../src/Osiris.sol";
 
 /// @title OsirisMock
-/// @notice Mock contract for testing purposes that extends Osiris with test-only functions
+/// @notice Extends Osiris with test-only backdoors for authorization bypass.
 contract OsirisMock is Osiris {
-    constructor(address _router, address _permit2, address _usdc, address _callbackSender, address _ethUsdFeed)
-        payable
-        Osiris(_router, _permit2, _usdc, _callbackSender, _ethUsdFeed)
-    {}
+    constructor(
+        address _router,
+        address _permit2,
+        address _usdc,
+        address _callbackSender,
+        address _ethUsdFeed,
+        address _wReact,
+        address _diaOracle
+    ) payable Osiris(_router, _permit2, _usdc, _callbackSender, _ethUsdFeed, _wReact, _diaOracle) {}
 
     /// @notice Testing function to add authorized sender for test purposes
     function addAuthorizedSenderForTesting(address sender) external {
@@ -18,7 +23,6 @@ contract OsirisMock is Osiris {
 
     /// @notice Testing function to set RVM ID for test purposes
     function setRvmIdForTesting(address rvmId) external {
-        // This allows the test to set the RVM ID that will be checked by rvmIdOnly modifier
         rvm_id = rvmId;
     }
 }

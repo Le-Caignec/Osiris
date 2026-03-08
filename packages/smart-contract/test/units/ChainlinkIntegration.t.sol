@@ -12,7 +12,12 @@ contract ChainlinkIntegrationTest is Test {
 
     function setUp() public {
         // Read from config.json like other tests
-        string memory chain = vm.envOr("CHAIN", string("sepolia"));
+        string memory chain;
+        try vm.envString("CHAIN") returns (string memory envChain) {
+            chain = bytes(envChain).length > 0 ? envChain : "sepolia";
+        } catch {
+            chain = "sepolia";
+        }
         ConfigLib.DestinationNetworkConfig memory config = ConfigLib.readDestinationNetworkConfig(chain);
         vm.createSelectFork(config.rpcUrl);
 
