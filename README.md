@@ -96,7 +96,7 @@ The faucet provides 10 USDC per hour per address per hours
 ### Arbitrum Mainnet Addresses
 
 - **Lasna (Reactive Testnet)**:
-  - Reactive Cron Contract: [`0x43b13636B59f9Dc05687Ac0CcDe2761707d3cD1d`](https://reactscan.net/address/0x31710397796a5fb5773c68de8ec104fe8bce0c23/contract/0x43b13636b59f9dc05687ac0ccde2761707d3cd1d?screen=transactions)
+  - Reactive Cron Contract: [`0x5b780fAEF9Bb37E7fb6ee15Df7B06664deCA4D4A`](https://reactscan.net/address/0x31710397796a5fb5773c68de8ec104fe8bce0c23/contract/0x5b780fAEF9Bb37E7fb6ee15Df7B06664deCA4D4A?screen=transactions)
 
 - **Arbitrum Mainnet**:
   - Osiris Contract: [`0xCab6642443a6efeAEe635C0A2dFEC6018b4Cd6a1`](https://arbiscan.io/address/0xCab6642443a6efeAEe635C0A2dFEC6018b4Cd6a1)
