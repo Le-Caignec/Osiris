@@ -203,6 +203,30 @@ From the `packages/smart-contract` directory:
 
 All useful addresses are stored in `config/config.json` and are automatically read by the scripts.
 
+### Mainnet Deployment Checklist
+
+Full redeployment procedure for Reactive Network, Arbitrum and Base mainnet.
+All commands run from `packages/smart-contract/`.
+
+| #   | Action                         | Command                                                                                         |
+| --- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
+| 1   | Pause current CronReactive     | `REACTIVE_NETWORK=reactive make pause-cron-reactive`                                            |
+| 2   | Deploy Osiris on Arbitrum      | `CHAIN=arbitrum ETHERSCAN_API_KEY=<arbiscan_key> make deploy-osiris`                            |
+| 3   | Deploy Osiris on Base          | `CHAIN=base ETHERSCAN_API_KEY=<basescan_key> make deploy-osiris`                                |
+| 4   | Update `config.json`           | Set `callbackContract` for arbitrum and base with new addresses                                 |
+| 5   | Fund callback proxies          | `CHAIN=arbitrum make fund-callback-proxy` and `CHAIN=base make fund-callback-proxy`             |
+| 6   | Deploy CronReactive            | `DESTINATION_CHAINS="arbitrum,base" make deploy-reactive`                                       |
+| 7   | Update `config.json`           | Set `reactiveContract` for reactive with new address                                            |
+| 8   | Update frontend `contracts.ts` | Set new Osiris addresses in `CHAIN.arbitrum.contracts.osiris` and `CHAIN.base.contracts.osiris` |
+| 9   | Deploy frontend                | Push to Vercel or your hosting platform                                                         |
+
+**Notes:**
+
+- Steps 2-3 use Ledger for mainnet signing (configure `LEDGER_INDEX` in `.env`)
+- `ETHERSCAN_API_KEY` differs per network: Arbiscan key for Arbitrum, Basescan key for Base
+- After each deploy, note the new contract address from the logs before proceeding
+- Verify callback proxy balances with `CHAIN=<chain> make check-callback-balance`
+
 ---
 
 ## Flow Chart
