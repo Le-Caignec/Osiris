@@ -51,7 +51,7 @@
             "weth": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
             "usdc": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
             "callbackProxyContract":"0x4730c58FDA9d78f60c987039aEaB7d261aAd942E",
-            "callbackContract": "0x5060963F11B2c4d95bB5e0bFcf52e76b1fb2aD56",
+            "callbackContract": "0xCab6642443a6efeAEe635C0A2dFEC6018b4Cd6a1",
             "chainlinkEthUsdFeed": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
             "wReact": "0x0000000000000000000000000000000000000000",
             "diaOracle": "0x0000000000000000000000000000000000000000"

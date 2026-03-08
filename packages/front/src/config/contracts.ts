@@ -3,7 +3,7 @@ export const CHAIN = {
   // Arbitrum Mainnet
   arbitrum: {
     contracts: {
-      osiris: '0x5060963F11B2c4d95bB5e0bFcf52e76b1fb2aD56',
+      osiris: '0xCab6642443a6efeAEe635C0A2dFEC6018b4Cd6a1',
       usdc: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     },
     rpc: 'https://arb1.arbitrum.io/rpc',
